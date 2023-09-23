@@ -13,8 +13,9 @@ members = [
 
 [[bin]]
 name = "chip8"
-path = "chip8/.src/main.rs"
+path = "chip8/src/main.rs"
 
 [dependencies]
 
 sdl2 = "0.35.2"
+rand = "0.8.5"
