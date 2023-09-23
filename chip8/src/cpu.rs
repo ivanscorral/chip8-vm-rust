@@ -117,14 +117,14 @@ impl CPU {
                     },
                     0x0007 => {
                         /* SUBN Vx, Vy instruction */
-                        self.memory.write_reg(0xF, (val_y > val_x) as u8);
-                        self.memory.write_reg(reg_x, reg_y - reg_x);
+                        self.memory.write_reg(0xF, (val_y > val_x) as u8); /* Set VF to the most significant bit of Vy */
+                        self.memory.write_reg(reg_x, reg_y - reg_x); /* SUB the value of Vx and Vy and write the result to Vx */
                     },
                     0x000E => {
                         /* SHL Vx {, Vy} instruction */
                         let x_ms_bit = val_x & 0x80;
-                        self.memory.write_reg(0xF, x_ms_bit);
-                        self.memory.write_reg(reg_x, val_x << 1);
+                        self.memory.write_reg(0xF, x_ms_bit);  /* Set VF to the most significant bit of Vx */
+                        self.memory.write_reg(reg_x, val_x << 1); /* DIV the value of Vx by 2 and write the result to Vx */
 
                     }
                     _ => {}
@@ -134,10 +134,20 @@ impl CPU {
                 /* SNE Vx, Vy instruction */
                 let reg_x: u8 = ((opcode & 0x0F00) >> 8) as u8;
                 let reg_y: u8 = ((opcode & 0x00F0) >> 4) as u8;
-                if self.memory.read_reg(reg_x) != self.memory.read_reg(reg_y) {
-                    self.memory.set_pc(self.memory.get_pc() + 2);
+                if self.memory.read_reg(reg_x) != self.memory.read_reg(reg_y) { /* Vx != Vy */
+                    self.memory.set_pc(self.memory.get_pc() + 2); /* Skip next instruction */
                 }
             },
+            0xA000 => {
+                /* LD I, addr instruction */
+                let n = opcode & 0x0FFF;
+                self.memory.set_i(n); /* Set I to addr */
+            },
+            0xB000 => {
+                /* JP V0, addr instruction */
+                let n = opcode & 0x0FFF;
+                self.memory.set_pc(n + self.memory.read_reg(0x0) as u16); /* Jump to addr + V0 */
+            }
 
             _ => {}
         }

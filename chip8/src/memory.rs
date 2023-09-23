@@ -58,6 +58,9 @@ impl Memory {
         self.stack[self.sp as usize]
     }
 
+    pub fn set_i(&mut self, val: u16) {
+        self.i = val;
+    }
 
     pub fn push_stack(&mut self, val: u16) {
         self.sp += 1;
