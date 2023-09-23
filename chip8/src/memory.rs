@@ -49,6 +49,10 @@ impl Memory {
         self.dt = val;
     }
 
+    pub fn set_st(&mut self, val: u8) {
+        self.st = val;
+    }
+
     pub fn set_pc(&mut self, val: u16) {
         self.pc = val;
     }
