@@ -25,20 +25,43 @@ impl Memory {
         }
     }
 
-    fn read(&self, addr: u16) -> u8 {
+    pub fn read(&self, addr: u16) -> u8 {
         self.memory[addr as usize]
     }
 
-    fn write(&mut self, addr: u16, val: u8) {
+    pub fn write(&mut self, addr: u16, val: u8) {
         self.memory[addr as usize] = val;
     }
 
-    fn read_reg(&self, reg: u8) -> u8 {
+    pub fn read_reg(&self, reg: u8) -> u8 {
         self.v[reg as usize]
     }
 
-    fn write_reg(&mut self, reg: u8, val: u8) {
+    pub fn write_reg(&mut self, reg: u8, val: u8) {
         self.v[reg as usize] = val;
+    }
+
+    pub fn get_pc(&self) -> u16 {
+        self.pc
+    }
+
+    pub fn set_dt(&mut self, val: u8) {
+        self.dt = val;
+    }
+
+    pub fn set_pc(&mut self, val: u16) {
+        self.pc = val;
+    }
+
+    pub fn pop_stack(&mut self) -> u16 {
+        self.sp -= 1;
+        self.stack[self.sp as usize]
+    }
+
+
+    pub fn push_stack(&mut self, val: u16) {
+        self.sp += 1;
+        self.stack[self.sp as usize] = val;
     }
 
     fn print_current_instr(&self) {
