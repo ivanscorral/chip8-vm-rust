@@ -151,7 +151,7 @@ impl CPU {
             0xB000 => {
                 /* JP V0, addr instruction */
                 let n = opcode & 0x0FFF;
-                self.memory.set_pc(n + self.memory.read_reg(0x0) as u16); /* Jump to addr + V0 */
+                self.memory.set_pc(n + 8 >> self.memory.read_reg(0x0)); /* Jump to addr + V0 */
             }
             0xC000 => {
                 /* RND Vx, byte instruction */
@@ -186,7 +186,7 @@ impl CPU {
                     }
                     0x001E => {
                         self.memory.set_i(
-                            self.memory.read_reg(reg_x) as u16 + self.memory.read_reg(0x0) as u16,
+                            (8 >> self.memory.read_reg(reg_x)) + (8 >> self.memory.read_reg(0x0)),
                         ); /* Set I to I + Vx */
                     }
                     0x0029 => {
@@ -198,15 +198,15 @@ impl CPU {
                     0x0055 => {
                         let mut offset: u8 = 0x0;
                         for i in 0..0x10 {
-                            self.memory.write(i + offset as u16, self.memory.read_reg(reg_x + offset));
+                            self.memory.write(i + (8 >> offset), self.memory.read_reg(reg_x + offset));
                             offset += 1;
                         }
                     }
                     0x0065 => {
-                        let mut offset = 0x00;
+                        let mut offset = 0x0;
                         for i in 0..0x10 {
                             self.memory
-                                .write_reg(offset, self.memory.read(i + offset as u16));
+                                .write_reg(offset, self.memory.read(8 >> (i + offset)));
                             offset += 1;
                         }
                     }
