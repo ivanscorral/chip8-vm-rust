@@ -83,6 +83,7 @@ impl CPU {
                 let reg_x = (opcode & 0x0F00) as u8;
                 let reg_y = (opcode & 0x00F0) as u8;
                 let val_y = self.memory.read_reg(reg_y);
+                let val_x = self.memory.read_reg(reg_x);
                 match opcode & 0x000F {
                     0x0000 => {
                         /* LD Vx, Vy instruction */
@@ -90,32 +91,53 @@ impl CPU {
                     }
                     0x0001 => {
                         /* OR Vx, Vy instruction */
-                        let val_x = self.memory.read_reg(reg_x);
                         self.memory.write_reg(reg_x, val_x | val_y); /* OR the value of Vx and Vy and write the result to Vx */
                     }
                     0x0002 => {
                         /* AND Vx, Vy instruction */
-                        let val_x = self.memory.read_reg(reg_x);
                         self.memory.write_reg(reg_x, val_x & val_y); /* AND the value of Vx and Vy and write the result to Vx */
                     }
                     0x0003 => {
                         /* XOR Vx, Vy instruction */
-                        let val_x = self.memory.read_reg(reg_x);
                         self.memory.write_reg(reg_x, val_x ^ val_y); /* XOR the value of Vx and Vy and write the result to Vx */
                     }
                     0x0004 => {
                         /* ADD Vx, Vy instruction */
-                        let val_x = self.memory.read_reg(reg_x);
                         self.memory.write_reg(reg_x, val_x + val_y); /* ADD the value of Vx and Vy and write the result to Vx */
                     }
                     0x0005 => {
                         /* SUB Vx, Vy instruction */
-                        let val_x = self.memory.read_reg(reg_x);
                         self.memory.write_reg(reg_x, val_x - val_y); /* SUB the value of Vx and Vy and write the result to Vx */
+                    },
+                    0x0006 => {
+                        /* SHR Vx {, Vy} instruction */
+                        let x_ls_bit = val_x & 0x1;
+                        self.memory.write_reg(0xF, x_ls_bit);  /* Set VF to the least significant bit of Vx */
+                        self.memory.write_reg(reg_x, val_x >> 1); /* DIV the value of Vx by 2 and write the result to Vx */
+                    },
+                    0x0007 => {
+                        /* SUBN Vx, Vy instruction */
+                        self.memory.write_reg(0xF, (val_y > val_x) as u8);
+                        self.memory.write_reg(reg_x, reg_y - reg_x);
+                    },
+                    0x000E => {
+                        /* SHL Vx {, Vy} instruction */
+                        let x_ms_bit = val_x & 0x80;
+                        self.memory.write_reg(0xF, x_ms_bit);
+                        self.memory.write_reg(reg_x, val_x << 1);
+
                     }
                     _ => {}
                 }
-            }
+            },
+            0x9000 => {
+                /* SNE Vx, Vy instruction */
+                let reg_x: u8 = ((opcode & 0x0F00) >> 8) as u8;
+                let reg_y: u8 = ((opcode & 0x00F0) >> 4) as u8;
+                if self.memory.read_reg(reg_x) != self.memory.read_reg(reg_y) {
+                    self.memory.set_pc(self.memory.get_pc() + 2);
+                }
+            },
 
             _ => {}
         }
