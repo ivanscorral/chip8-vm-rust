@@ -43,7 +43,7 @@ impl CPU {
         println!("Executing opcode: {:04X}", opcode);
         match opcode & 0xF000 {
             0x0000 => {
-                match opcode & 0x000F {
+                match opcode & 0x00FF {
                     0x0000 => {
                         /* HLT instruction */
                         self.halt = true;
@@ -52,7 +52,7 @@ impl CPU {
                         /* CLS instruction */
                         self.gpu.reset();
                     }
-                    0x000E => {
+                    0x00EE => {
                         /* RET instruction */
                         let addr = self.memory.pop_stack();
                         self.memory.set_pc(addr);
@@ -78,7 +78,7 @@ impl CPU {
                 if self.memory.read_reg(reg) == k
                 /* Vx == kk */
                 {
-                    self.memory.set_pc(self.memory.get_pc() + 2);
+                    self.increment()
                 }
             }
             0x4000 => {
@@ -88,7 +88,7 @@ impl CPU {
                 if self.memory.read_reg(reg) != k
                 /* Vx != kk */
                 {
-                    self.memory.set_pc(self.memory.get_pc() + 2);
+                    self.increment()
                 }
             }
             0x5000 => {
@@ -98,14 +98,13 @@ impl CPU {
                 if self.memory.read_reg(reg_x) == self.memory.read_reg(reg_y)
                 /* Vx == Vy */
                 {
-                    self.memory.set_pc(self.memory.get_pc() + 2); /* Skip next instruction */
+                    self.increment()
                 }
             }
             0x6000 => {
                 /* LD Vx, k instruction */
                 let reg_x: u8 = ((opcode & 0x0F00) >> 8) as u8;
                 let k = (opcode & 0x00FF) as u8;
-                println!("reg_x: {}, k: {}", reg_x, k);
                 self.memory.write_reg(reg_x, k); /* Set Vx to kk */
             }
             0x7000 => {
@@ -113,15 +112,19 @@ impl CPU {
                 let reg_x: u8 = ((opcode & 0x0F00) >> 8) as u8;
                 let k = (opcode & 0x00FF) as u8;
                 self.memory
-                    .write_reg(reg_x, k + self.memory.read_reg(reg_x)); /* Vx = Vx + kk */
+                    .write_reg(reg_x, self.memory.read_reg(reg_x).wrapping_add(k));
+                /* Vx = Vx + kk */
             }
             0x8000 => {
-                let reg_x = ((opcode & 0x0F00) >> 8)  as u8;
+                let reg_x = ((opcode & 0x0F00) >> 8) as u8;
                 let reg_y = ((opcode & 0x00F0) >> 4) as u8;
                 println!("reg_x: {}, reg_y: {}", reg_x, reg_y);
                 let val_y = self.memory.read_reg(reg_y);
                 let val_x = self.memory.read_reg(reg_x);
-                println!("reg_x: {}, reg_y: {}, val_x: {}, val_y: {}", reg_x, reg_y, val_x, val_y);
+                println!(
+                    "reg_x: {}, reg_y: {}, val_x: {}, val_y: {}",
+                    reg_x, reg_y, val_x, val_y
+                );
                 match opcode & 0x000F {
                     0x0000 => {
                         /* LD Vx, Vy instruction */
@@ -141,14 +144,19 @@ impl CPU {
                     }
                     0x0004 => {
                         /* ADD Vx, Vy instruction */
-                        println!("val_x: {}, val_y: {}", val_x, val_y);
-                        self.memory.write_reg(reg_x, val_x.wrapping_add(val_y));
+                        if (val_x as u16) + (val_y as u16) > 0xFF {
+                            self.memory.write_reg(0xF, 1);
+                        } else {
+                            self.memory.write_reg(0xF, 0);
+                        }
+                        let sum = val_x.wrapping_add(val_y);
+                        self.memory.write_reg(reg_x, sum)
                         /* ADD the value of Vx and Vy and write the result to Vx */
                     }
                     0x0005 => {
                         /* SUB Vx, Vy instruction */
+                        self.memory.write_reg(0xF, (val_x > val_y) as u8);
                         self.memory.write_reg(reg_x, val_x.wrapping_sub(val_y));
-                        /* SUB the value of Vx and Vy and write the result to Vx */
                     }
                     0x0006 => {
                         /* SHR Vx {, Vy} instruction */
@@ -159,12 +167,12 @@ impl CPU {
                     0x0007 => {
                         /* SUBN Vx, Vy instruction */
                         self.memory.write_reg(0xF, (val_y > val_x) as u8); /* Set VF to the most significant bit of Vy */
-                        self.memory.write_reg(reg_x, reg_y.wrapping_sub(val_x));
+                        self.memory.write_reg(reg_x, val_y.wrapping_sub(val_x));
                         /* SUB the value of Vx and Vy and write the result to Vx */
                     }
                     0x000E => {
                         /* SHL Vx {, Vy} instruction */
-                        let x_ms_bit = val_x & 0x80 >> 7;
+                        let x_ms_bit = (val_x & 0x80) >> 7;
                         self.memory.write_reg(0xF, x_ms_bit); /* Set VF to the most significant bit of Vx */
                         self.memory.write_reg(reg_x, val_x.wrapping_shl(1)); /* DIV the value of Vx by 2 and write the result to Vx */
                     }
@@ -247,7 +255,8 @@ impl CPU {
                         /* LD [I], Vx instruction */
                         let addr = self.memory.get_i();
                         for offset in 0..=0xF {
-                            self.memory.store(addr + offset as u16, self.memory.read_reg(offset as u8));
+                            self.memory
+                                .store(addr + offset as u16, self.memory.read_reg(offset as u8));
                         }
                     }
                     0x0065 => {
@@ -307,7 +316,6 @@ impl CPU {
         self.key_state[key as usize] = 0;
     }
 
-
     pub fn reset(&mut self) {
         self.memory.reset();
         self.gpu.reset();
@@ -316,11 +324,9 @@ impl CPU {
 
     pub fn load_program(&mut self, program: &[u8]) {
         println!("Loading program");
-        self.print_memory_region(0x100, 0x250);
         for i in 0..program.len() {
             self.memory.store((i + 0x200) as u16, program[i]);
         }
-        self.print_memory_region(0x100, 0x250);
-
+        self.print_memory_region(0x200, 0x2FF);
     }
 }
