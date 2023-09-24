@@ -6,7 +6,7 @@ pub struct Memory {
     pc: u16,
     sp: u8,
     v: [u8; 16],
-    i: u16,
+    pub i: u16,
     dt: u8,
     st: u8,
 }
@@ -16,7 +16,7 @@ impl Memory {
         Memory {
             memory: [0; MEM_SIZE],
             stack: [0; 0x100],
-            pc: 0,
+            pc: 0x200,
             sp: 0,
             v: [0; 16],
             i: 0,
@@ -25,11 +25,12 @@ impl Memory {
         }
     }
 
-    pub fn read(&self, addr: u16) -> u8 {
+
+    pub fn load(&self, addr: u16) -> u8 {
         self.memory[addr as usize]
     }
 
-    pub fn write(&mut self, addr: u16, val: u8) {
+    pub fn store(&mut self, addr: u16, val: u8) {
         self.memory[addr as usize] = val;
     }
 
@@ -49,8 +50,24 @@ impl Memory {
         self.dt = val;
     }
 
+    pub fn update_timers(&mut self) {
+        if self.dt > 0 {
+            self.dt -= 1;
+        }
+
+        if self.st > 0 {
+            self.st -= 1;
+        }
+    }
+
     pub fn set_st(&mut self, val: u8) {
         self.st = val;
+    }
+    pub fn get_dt(&self) -> u8 {
+        self.dt
+    }
+    pub fn get_st(&self) -> u8 {
+        self.st
     }
 
     pub fn set_pc(&mut self, val: u16) {
@@ -63,7 +80,11 @@ impl Memory {
     }
 
     pub fn set_i(&mut self, val: u16) {
+        println!("I reg: {}", val);
         self.i = val;
+    }
+    pub fn get_i(&self) -> u16 {
+        self.i
     }
 
     pub fn push_stack(&mut self, val: u16) {
@@ -71,17 +92,21 @@ impl Memory {
         self.stack[self.sp as usize] = val;
     }
 
-    fn print_current_instr(&self) {
+    pub fn reset(&mut self) {
+        self.pc = 0x200;
+        self.sp = 0;
+        self.v = [0; 16];
+        self.i = 0;
+        self.dt = 0;
+        self.st = 0;
+
+    }
+
+    pub fn print_current_instr(&self) {
         println!("Current instruction: {:04X}", self.read_instr());
     }
 
-    fn read_instr(&self) -> u16 {
-        (self.read(self.pc) as u16) << 8 | self.read(self.pc + 1) as u16
+    pub fn read_instr(&self) -> u16 {
+        (self.load(self.pc) as u16) << 8 | self.load(self.pc + 1) as u16
     }
-
-    fn consume_instr(&mut self) -> u16 {
-        self.pc += 2;
-        self.read_instr()
-    }
-
 }

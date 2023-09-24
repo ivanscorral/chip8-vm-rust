@@ -1,10 +1,10 @@
-use std::thread;
 use std::time::{Instant, Duration};
 
 use cpu::CPU;
 
 mod cpu;
 mod memory;
+mod gpu;
 
 fn wait_for_next_cycle(target_clock: u64, last_timestamp: &mut Instant) {
     let target_duration = Duration::from_secs_f64(1.0 / target_clock as f64);
@@ -17,9 +17,32 @@ fn wait_for_next_cycle(target_clock: u64, last_timestamp: &mut Instant) {
 
 fn main() {
     let mut cpu = CPU::new();
-    'main: loop {
+    let program = [
+        0xAF,
+        0xF0,
+        0x60,
+        0x02,
+        0x61,
+        0x03,
+        0x80,
+        0x14,
+        0xF0,
+        0x55,];
+    cpu.load_program(&program);
+    let mut counter = 0;
 
+    'main: loop {
+        if !cpu.halt {
+            cpu.cycle();
+        } else if counter < 5 {
+            cpu.reset();
+            counter += 1;
+        } else {
+            cpu.print_registers();
+            cpu.print_memory_region(0xFF0, 0xFFF);
+            break 'main;
+        }
         let mut last_timestamp = Instant::now();
-        wait_for_next_cycle(5, &mut last_timestamp);
+        wait_for_next_cycle(500, &mut last_timestamp);
     }
 }
