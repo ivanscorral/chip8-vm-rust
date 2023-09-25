@@ -32,15 +32,17 @@ impl CPU {
         }
     }
 
-    // TODO: Fix fetch_opcode
     fn fetch_opcode(&mut self) -> u16 {
         let opcode = self.memory.read_instr();
-        self.memory.set_pc(self.memory.get_pc() + 2);
         opcode
     }
 
     pub fn execute(&mut self, opcode: u16) {
         println!("Executing opcode: {:04X}", opcode);
+        let addr = opcode & 0x0FFF;
+        let reg_x = ((opcode & 0x0F00) >> 8) as u8;
+        let reg_y = ((opcode & 0x00F0) >> 4) as u8;
+        let k = (opcode & 0x00FF) as u8;
         match opcode & 0xF000 {
             0x0000 => {
                 match opcode & 0x00FF {
@@ -54,77 +56,52 @@ impl CPU {
                     }
                     0x00EE => {
                         /* RET instruction */
-                        let addr = self.memory.pop_stack();
-                        self.memory.set_pc(addr);
+                        self.memory.pc = self.memory.pop_stack();
                     }
                     _ => {}
                 }
             }
             0x1000 => {
                 /* JUMP addr instruction */
-                let addr = opcode & 0x0FFF;
-                self.memory.set_pc(addr);
+                self.memory.pc = addr;
             }
             0x2000 => {
                 /* CALL addr instruction */
-                let addr = opcode & 0x0FFF;
-                self.memory.push_stack(self.memory.get_pc());
-                self.memory.set_pc(addr);
+                self.memory.push_stack(self.memory.pc);
+                self.memory.pc = addr
             }
             0x3000 => {
                 /* SE Vx, byte instruction */
-                let reg: u8 = ((opcode & 0x0F00) >> 8) as u8;
-                let k = (opcode & 0x00FF) as u8;
-                if self.memory.read_reg(reg) == k
-                /* Vx == kk */
-                {
+                if self.memory.read_reg(reg_x) == k {
                     self.increment()
                 }
             }
             0x4000 => {
                 /* SNE Vx, byte instruction */
-                let reg: u8 = ((opcode & 0x0F00) >> 8) as u8;
-                let k = (opcode & 0x00FF) as u8;
-                if self.memory.read_reg(reg) != k
-                /* Vx != kk */
-                {
+                if self.memory.read_reg(reg_x) != k {
                     self.increment()
                 }
             }
             0x5000 => {
                 /* SE Vx, Vy instruction */
-                let reg_x: u8 = ((opcode & 0x0F00) >> 8) as u8;
-                let reg_y: u8 = ((opcode & 0x00F0) >> 4) as u8;
-                if self.memory.read_reg(reg_x) == self.memory.read_reg(reg_y)
-                /* Vx == Vy */
-                {
+                if self.memory.read_reg(reg_x) == self.memory.read_reg(reg_y) {
                     self.increment()
                 }
             }
             0x6000 => {
                 /* LD Vx, k instruction */
-                let reg_x: u8 = ((opcode & 0x0F00) >> 8) as u8;
-                let k = (opcode & 0x00FF) as u8;
+
                 self.memory.write_reg(reg_x, k); /* Set Vx to kk */
             }
             0x7000 => {
                 /* ADD Vx, byte instruction */
-                let reg_x: u8 = ((opcode & 0x0F00) >> 8) as u8;
-                let k = (opcode & 0x00FF) as u8;
                 self.memory
                     .write_reg(reg_x, self.memory.read_reg(reg_x).wrapping_add(k));
                 /* Vx = Vx + kk */
             }
             0x8000 => {
-                let reg_x = ((opcode & 0x0F00) >> 8) as u8;
-                let reg_y = ((opcode & 0x00F0) >> 4) as u8;
-                println!("reg_x: {}, reg_y: {}", reg_x, reg_y);
                 let val_y = self.memory.read_reg(reg_y);
                 let val_x = self.memory.read_reg(reg_x);
-                println!(
-                    "reg_x: {}, reg_y: {}, val_x: {}, val_y: {}",
-                    reg_x, reg_y, val_x, val_y
-                );
                 match opcode & 0x000F {
                     0x0000 => {
                         /* LD Vx, Vy instruction */
@@ -181,28 +158,21 @@ impl CPU {
             }
             0x9000 => {
                 /* SNE Vx, Vy instruction */
-                let reg_x: u8 = ((opcode & 0x0F00) >> 8) as u8; /* shift the third bit to the right to get the register number*/
-                let reg_y: u8 = ((opcode & 0x00F0) >> 4) as u8; /* shift the second bit to the right to get the register number*/
                 if self.memory.read_reg(reg_x) != self.memory.read_reg(reg_y) {
-                    /* read the values of Vx and Vy and compare them */
-                    /* Vx != Vy */
-                    self.memory.set_pc(self.memory.get_pc() + 2); /* Skip next instruction */
+                    self.increment()
                 }
             }
             0xA000 => {
                 /* LD I, addr instruction */
-                let n = opcode & 0x0FFF;
-                self.memory.set_i(n); /* Set I to addr */
+                self.memory.i = opcode & 0x0FFF; /* Set I to addr */
             }
             0xB000 => {
                 /* JP V0, addr instruction */
-                let n = opcode & 0x0FFF;
-                self.memory.set_pc(n + self.memory.read_reg(0x0) as u16); /* Jump to addr + V0 */
+                self.memory.pc = addr.wrapping_add(self.memory.read_reg(0) as u16);
+                /* Jump to addr + V0 */
             }
             0xC000 => {
                 /* RND Vx, byte instruction */
-                let reg_x = ((opcode & 0x0F00) >> 8) as u8;
-                let k = (opcode & 0x00FF) as u8;
                 let mut rng = rand::thread_rng();
                 let rand_u8 = rng.gen::<u8>();
                 self.memory.write_reg(reg_x, rand_u8 & k); /* Set Vx to a random byte, which is the result of a bitwise AND with kk */
@@ -218,11 +188,11 @@ impl CPU {
                 unimplemented!();
             }
             0xF000 => {
-                let reg_x = ((opcode & 0x0F00) >> 8) as u8;
+                let val_x = self.memory.read_reg(reg_x);
                 match opcode & 0x0FF {
                     0x0007 => {
                         /* LD Vx, DT instruction */
-                        self.memory.write_reg(reg_x, self.memory.get_dt()); /* Set Vx to DT */
+                        self.memory.write_reg(reg_x, self.memory.dt); /* Set Vx to DT */
                     }
                     0x000A => {
                         /* LD Vx, K instruction */
@@ -231,17 +201,15 @@ impl CPU {
                     }
                     0x0015 => {
                         /* LD DT, Vx instruction */
-                        self.memory.set_dt(self.memory.read_reg(reg_x)); /* Set delay timer to Vx */
+                        self.memory.dt = val_x; /* Set delay timer to Vx */
                     }
                     0x0018 => {
                         /* LD ST, Vx instruction */
-                        self.memory.set_st(self.memory.read_reg(reg_x)); /* Set sound timer to Vx */
+                        self.memory.st = val_x; /* Set sound timer to Vx */
                     }
                     0x001E => {
                         /* ADD I, Vx instruction */
-                        self.memory.set_i(
-                            self.memory.read_reg(reg_x) as u16 + self.memory.read_reg(0x0) as u16,
-                        ); /* Set I to I + Vx */
+                        self.memory.i = val_x as u16 + self.memory.i; /* Set I to I + Vx */
                     }
                     0x0029 => {
                         /* LD F, Vx instruction */
@@ -253,19 +221,18 @@ impl CPU {
                     }
                     0x0055 => {
                         /* LD [I], Vx instruction */
-                        let addr = self.memory.get_i();
-                        for offset in 0..=0xF {
-                            self.memory
-                                .store(addr + offset as u16, self.memory.read_reg(offset as u8));
+                        for offset in 0..0x10 {
+                            self.memory.store(
+                                self.memory.i + offset as u16,
+                                self.memory.read_reg(offset as u8),
+                            );
                         }
                     }
                     0x0065 => {
                         /* LD Vx, [I] instruction */
-                        let mut offset = 0x0;
-                        for i in 0..0x10 {
+                        for offset in 0..0x10 {
                             self.memory
-                                .write_reg(offset, self.memory.load(i + offset as u16));
-                            offset += 1;
+                                .write_reg(offset, self.memory.load(self.memory.i + offset as u16));
                         }
                     }
                     _ => {}
@@ -274,13 +241,14 @@ impl CPU {
 
             _ => {
                 println!("Unknown opcode: {:04X}", opcode);
-                self.halt = true;
+                panic!();
             }
         }
+        self.print_registers()
     }
 
     fn increment(&mut self) {
-        self.memory.set_pc(self.memory.get_pc() + 2);
+        self.memory.pc = self.memory.pc.wrapping_add(2);
     }
 
     fn update_timers(&mut self) {
@@ -295,15 +263,34 @@ impl CPU {
     }
 
     pub fn print_registers(&self) {
-        println!("PC: {:04X}", self.memory.get_pc());
+        println!("Registers\nPC: 0x{:04X}\t SP: 0x{:04X}, I: 0x{:04X}", self.memory.pc, self.memory.sp, self.memory.i);
+
+        let mut tabs = 0;
         for i in 0..16 {
-            println!("V{:X}: {:02X}", i, self.memory.read_reg(i));
+            if tabs < 3 {
+                print!("V{:X}: 0x{:02X}\t", i, self.memory.read_reg(i));
+                tabs += 1;
+            } else {
+                println!("V{:X}: 0x{:02X}", i, self.memory.read_reg(i));
+                tabs = 0;
+            }
         }
+        println!();
     }
 
-    pub fn print_memory_region(&self, start: u16, end: u16) {
-        for i in start..end {
-            print!("{:02X} ", self.memory.load(i));
+    pub fn print_memory_region(&self, start: u16, end: u16, tabs_count: usize) {
+        let mut tabs = 0;
+        for i in start..=end {
+            if tabs == 0 {
+                print!("0x{:04X}: ", i);
+            }
+            if tabs < tabs_count - 1 {
+                print!("{:02X} ", self.memory.load(i));
+                tabs += 1;
+            }else {
+                println!("{:02X}", self.memory.load(i));
+                tabs = 0;
+            }
         }
         println!();
     }
@@ -327,6 +314,6 @@ impl CPU {
         for i in 0..program.len() {
             self.memory.store((i + 0x200) as u16, program[i]);
         }
-        self.print_memory_region(0x200, 0x2FF);
+        self.print_memory_region(0x200, 0xFFF, 64);
     }
 }

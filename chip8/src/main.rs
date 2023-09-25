@@ -23,7 +23,7 @@ fn main() {
         0x60,
         0x02,
         0x61,
-        0x03,
+        0x0A,
         0x80,
         0x14,
         0xF0,
@@ -34,15 +34,15 @@ fn main() {
     'main: loop {
         if !cpu.halt {
             cpu.cycle();
-        } else if counter < 5 {
+        } else if counter < 1 {
             cpu.reset();
             counter += 1;
         } else {
             cpu.print_registers();
-            cpu.print_memory_region(0xFF0, 0xFFF);
+            cpu.print_memory_region(0xF00, 0xFFF, 16);
             break 'main;
         }
         let mut last_timestamp = Instant::now();
-        wait_for_next_cycle(500, &mut last_timestamp);
+        wait_for_next_cycle(2, &mut last_timestamp);
     }
 }
