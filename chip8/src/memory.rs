@@ -73,10 +73,6 @@ impl Memory {
 
     }
 
-    pub fn print_current_instr(&self) {
-        println!("Current instruction: {:04X}", self.read_instr());
-    }
-
     pub fn read_instr(&self) -> u16 {
         (self.load(self.pc) as u16) << 8 | self.load(self.pc + 1) as u16
     }

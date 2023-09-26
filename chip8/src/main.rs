@@ -43,6 +43,6 @@ fn main() {
             break 'main;
         }
         let mut last_timestamp = Instant::now();
-        wait_for_next_cycle(2, &mut last_timestamp);
+        wait_for_next_cycle(4, &mut last_timestamp);
     }
 }
