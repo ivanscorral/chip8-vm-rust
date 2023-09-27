@@ -28,21 +28,26 @@ fn main() {
         0x14,
         0xF0,
         0x55,];
+
+    println!("Loading program:");
     cpu.load_program(&program);
     let mut counter = 0;
-
+    println!("Sprites:");
+    cpu.print_memory_region(0x0, 0x50, 5);
     'main: loop {
         if !cpu.halt {
             cpu.cycle();
-        } else if counter < 1 {
+        } else if counter < 0 {
             cpu.reset();
             counter += 1;
         } else {
+            println!("Registers:");
             cpu.print_registers();
-            cpu.print_memory_region(0xF00, 0xFFF, 16);
+            println!("Memory:");
+            cpu.print_memory_region(0x0F00, 0x1000, 16);
             break 'main;
         }
         let mut last_timestamp = Instant::now();
-        wait_for_next_cycle(4, &mut last_timestamp);
+        wait_for_next_cycle(32, &mut last_timestamp);
     }
 }

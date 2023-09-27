@@ -38,7 +38,7 @@ impl CPU {
         let reg_x = ((opcode & 0x0F00) >> 8) as u8;
         let reg_y = ((opcode & 0x00F0) >> 4) as u8;
         let k = (opcode & 0x00FF) as u8;
-        println!("x: V{:01X}\ty: V{:01X}\nkk: 0x{:02X}\tnnn: 0x{:03X}", reg_x, reg_y, k, addr);
+        println!("addr: 0x{:03X}\treg_x: V{:01X}\treg_y: V{:01X}\tkk: 0x{:02X}\tnnn: 0x{:03X}", addr, reg_x, reg_y, k, addr);
         match opcode & 0xF000 {
             0x0000 => {
                 match opcode & 0x00FF {
@@ -261,7 +261,7 @@ impl CPU {
     }
 
     pub fn print_registers(&self) {
-        println!("Registers\nPC: 0x{:04X}\t SP: 0x{:04X}, I: 0x{:04X}", self.memory.pc, self.memory.sp, self.memory.i);
+        println!("PC: 0x{:04X}\tSP: 0x{:04X}\tI: 0x{:04X}", self.memory.pc, self.memory.sp, self.memory.i);
 
         let mut tabs = 0;
         for i in 0..16 {
@@ -278,7 +278,7 @@ impl CPU {
 
     pub fn print_memory_region(&self, start: u16, end: u16, tabs_count: usize) {
         let mut tabs = 0;
-        for i in start..=end {
+        for i in start..end {
             if tabs == 0 {
                 print!("0x{:04X}: ", i);
             }
@@ -312,6 +312,6 @@ impl CPU {
         for i in 0..program.len() {
             self.memory.store((i + 0x200) as u16, program[i]);
         }
-        self.print_memory_region(0x200, 0xFFF, 32);
+        self.print_memory_region(0x200, 0x400, 16);
     }
 }
