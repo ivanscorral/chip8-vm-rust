@@ -32,11 +32,6 @@ impl CPU {
         }
     }
 
-    fn fetch_opcode(&mut self) -> u16 {
-        let opcode = self.memory.read_instr();
-        opcode
-    }
-
     pub fn execute(&mut self, opcode: u16) {
         println!("Executing opcode: {:04X}", opcode);
         let addr = opcode & 0x0FFF;
@@ -64,10 +59,12 @@ impl CPU {
             }
             0x1000 => {
                 /* JUMP addr instruction */
+                // TODO: Test JUMP instruction
                 self.memory.pc = addr;
             }
             0x2000 => {
                 /* CALL addr instruction */
+                // TODO: Test CALL instruction
                 self.memory.push_stack(self.memory.pc);
                 self.memory.pc = addr
             }
