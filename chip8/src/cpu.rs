@@ -171,8 +171,10 @@ impl CPU {
             }
             0xD000 => {
                 /* DRW Vx, Vy, nibble instruction */
-                // TODO: Unimplemented
-                unimplemented!();
+                let nibble = opcode & 0x000F;
+                let coords: Coordinate = (self.memory.read_reg(reg_x).into(), self.memory.read_reg(reg_y).into());
+                let sprite = self.memory.load_sprite(nibble.into());
+                self.memory.write_reg(0xF, self.gpu.draw_sprite(coords, sprite));
             }
             0xE000 => {
                 /* SKP Vx instruction */

@@ -100,4 +100,21 @@ impl Memory {
 
         self.memory[0..0x50].copy_from_slice(&sprites);
     }
+
+    pub(crate) fn load_sprite(&self, nibble: usize) -> Vec<u8> {
+        let mut sprite = Vec::new();
+        let start_addr = self.i as usize;
+
+        if start_addr + nibble > MEM_SIZE {
+            return sprite;
+        }
+
+        for offset in 0..nibble {
+            let byte = self.load((start_addr + offset) as u16);
+            sprite.push(byte);
+        }
+
+        sprite
+    }
+
 }
