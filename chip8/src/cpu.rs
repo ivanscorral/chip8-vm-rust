@@ -119,19 +119,14 @@ impl CPU {
                     }
                     0x0004 => {
                         /* ADD Vx, Vy instruction */
-                        if (val_x as u16) + (val_y as u16) > 0xFF {
-                            self.memory.write_reg(0xF, 1);
-                        } else {
-                            self.memory.write_reg(0xF, 0);
-                        }
-                        let sum = val_x.wrapping_add(val_y);
+                        let sum = self.add_overflow(val_x, val_y);
                         self.memory.write_reg(reg_x, sum)
                         /* ADD the value of Vx and Vy and write the result to Vx */
                     }
                     0x0005 => {
                         /* SUB Vx, Vy instruction */
-                        self.memory.write_reg(0xF, (val_x > val_y) as u8);
-                        self.memory.write_reg(reg_x, val_x.wrapping_sub(val_y));
+                        let diff = self.sub_overflow(val_x, val_y);
+                        self.memory.write_reg(reg_x, diff);
                     }
                     0x0006 => {
                         /* SHR Vx {, Vy} instruction */
@@ -141,8 +136,8 @@ impl CPU {
                     }
                     0x0007 => {
                         /* SUBN Vx, Vy instruction */
-                        self.memory.write_reg(0xF, (val_y > val_x) as u8); /* Set VF to the most significant bit of Vy */
-                        self.memory.write_reg(reg_x, val_y.wrapping_sub(val_x));
+                        let diff = self.sub_overflow(val_y, val_x);
+                        self.memory.write_reg(reg_x, diff);
                         /* SUB the value of Vx and Vy and write the result to Vx */
                     }
                     0x000E => {
@@ -263,18 +258,23 @@ impl CPU {
     pub fn print_registers(&self) {
         println!("PC: 0x{:04X}\tSP: 0x{:04X}\tI: 0x{:04X}", self.memory.pc, self.memory.sp, self.memory.i);
 
-        let mut tabs = 0;
-        for i in 0..16 {
-            if tabs < 3 {
-                print!("V{:X}: 0x{:02X}\t", i, self.memory.read_reg(i));
-                tabs += 1;
-            } else {
-                println!("V{:X}: 0x{:02X}", i, self.memory.read_reg(i));
-                tabs = 0;
+        // Number of columns in the output
+        let num_cols = 4;
+
+        for row in 0..4 {
+            for col in 0..num_cols {
+                // Calculate the current register index based on row and column
+                let reg_index = row + 4 * col;
+                if col < num_cols - 1 {
+                    print!("V{:X}: 0x{:02X}\t", reg_index, self.memory.read_reg(reg_index));
+                } else {
+                    println!("V{:X}: 0x{:02X}", reg_index, self.memory.read_reg(reg_index));
+                }
             }
         }
         println!();
     }
+
 
     pub fn print_memory_region(&self, start: u16, end: u16, tabs_count: usize) {
         let mut tabs = 0;
@@ -305,6 +305,18 @@ impl CPU {
         self.memory.reset();
         self.gpu.reset();
         self.halt = false;
+    }
+
+    fn add_overflow(&mut self, x: u8, y: u8) -> u8 {
+        let (sum, overflow) = x.overflowing_add(y);
+        self.memory.write_reg(0xF, overflow as u8);
+        sum
+    }
+
+    fn sub_overflow(&mut self, x: u8, y: u8) -> u8 {
+        let (diff, overflow) = x.overflowing_sub(y);
+        self.memory.write_reg(0xF, !overflow as u8);
+        diff
     }
 
     pub fn load_program(&mut self, program: &[u8]) {
