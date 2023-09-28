@@ -5,6 +5,14 @@ pub mod memory;
 use std::time::{Instant, Duration};
 use cpu::CPU;
 
+const TARGET_CLK: u64 = 16;
+
+/// Wait for the next cycle until the target clock is reached.
+///
+/// # Arguments
+///
+/// * `target_clock` - The target clock to wait for.
+/// * `last_timestamp` - A mutable reference to the last timestamp.
 fn wait_for_next_cycle(target_clock: u64, last_timestamp: &mut Instant) {
     let target_duration = Duration::from_secs_f64(1.0 / target_clock as f64);
     let mut elapsed = last_timestamp.elapsed();
@@ -28,7 +36,6 @@ fn main() {
         0xF0, 0x55, /* LD [I], Vx */
     ];
 
-    println!("Loading program:");
     cpu.load_program(&program);
     let mut counter = 0;
     println!("Sprites:");
@@ -47,6 +54,6 @@ fn main() {
             break 'main;
         }
         let mut last_timestamp = Instant::now();
-        wait_for_next_cycle(32, &mut last_timestamp);
+        wait_for_next_cycle(TARGET_CLK, &mut last_timestamp);
     }
 }

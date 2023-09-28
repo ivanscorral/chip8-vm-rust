@@ -4,7 +4,9 @@ use crate::gpu::{Coordinate, GPU};
 use rand::Rng;
 
 
+/// Trait representing a keyboard that can be polled for input.
 trait Keyboard {
+    /// Polls the keyboard for input.
     fn poll(&mut self);
 }
 
@@ -14,6 +16,7 @@ impl Keyboard for CPU {
     }
 }
 
+/// Represents the CPU of the Chip-8 virtual machine.
 pub struct CPU {
     memory: Memory,
     gpu: GPU,
@@ -31,7 +34,8 @@ impl CPU {
         }
     }
 
-    pub fn execute(&mut self, opcode: u16) {
+    /// Executes the given opcode on the CPU.
+        pub fn execute(&mut self, opcode: u16) {
         println!("Executing opcode: {:04X}", opcode);
         let addr = opcode & 0x0FFF;
         let reg_x = ((opcode & 0x0F00) >> 8) as u8;
@@ -256,7 +260,8 @@ impl CPU {
         self.increment();
     }
 
-    pub fn print_registers(&self) {
+    /// Prints the values of all the CPU registers.
+        pub fn print_registers(&self) {
         println!("PC: 0x{:04X}\tSP: 0x{:04X}\tI: 0x{:04X}", self.memory.pc, self.memory.sp, self.memory.i);
 
         // Number of columns in the output
@@ -277,7 +282,8 @@ impl CPU {
     }
 
 
-    pub fn print_memory_region(&self, start: u16, end: u16, tabs_count: usize) {
+    /// Prints the memory region from `start` to `end` (inclusive) with the specified number of tabs.
+        pub fn print_memory_region(&self, start: u16, end: u16, tabs_count: usize) {
         let mut tabs = 0;
         for i in start..end {
             if tabs == 0 {
