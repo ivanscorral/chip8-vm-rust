@@ -1,9 +1,8 @@
-extern crate rand;
 
-use crate::gpu::GPU;
 use crate::memory::Memory;
-
+use crate::gpu::{Coordinate, GPU};
 use rand::Rng;
+
 
 trait Keyboard {
     fn poll(&mut self);

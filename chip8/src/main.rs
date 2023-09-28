@@ -1,10 +1,9 @@
+pub mod cpu;
+pub mod gpu;
+pub mod memory;
+
 use std::time::{Instant, Duration};
-
 use cpu::CPU;
-
-mod cpu;
-mod memory;
-mod gpu;
 
 fn wait_for_next_cycle(target_clock: u64, last_timestamp: &mut Instant) {
     let target_duration = Duration::from_secs_f64(1.0 / target_clock as f64);
