@@ -1,4 +1,5 @@
 pub mod cpu;
+pub mod instructions;
 pub mod gpu;
 pub mod memory;
 
