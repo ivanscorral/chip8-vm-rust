@@ -17,16 +17,16 @@ fn wait_for_next_cycle(target_clock: u64, last_timestamp: &mut Instant) {
 fn main() {
     let mut cpu = CPU::new();
     let program = [
-        0xAF,
-        0xF0,
-        0x60,
-        0x02,
-        0x61,
-        0x0A,
-        0x80,
-        0x14,
-        0xF0,
-        0x55,];
+        0xAF, 0xF0, /* LD I, 0xFF0 */
+        0x60, 0x02, /* LD V0, 0x02 */
+        0x61, 0x0A, /* LD V1, 0x0A */
+        0x80, 0x14, /* ADD V0, V1 */
+        0x82, 0x00, /* LD V2, V0 */
+        0x82, 0x14, /* ADD V2, V1 */
+        0x63, 0x16, /* LD V3, 0x16 */
+        0x83, 0x23, /* XOR V3, V2 */
+        0xF0, 0x55, /* LD [I], Vx */
+    ];
 
     println!("Loading program:");
     cpu.load_program(&program);
