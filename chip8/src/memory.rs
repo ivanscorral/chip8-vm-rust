@@ -1,70 +1,130 @@
+/// The size of the memory in bytes.
 pub const MEM_SIZE: usize = 0x1000;
 
+/// The memory struct, representing the 4KB of RAM available to the Chip-8.
 pub struct Memory {
-    pub memory: [u8; MEM_SIZE],
-    pub stack: [u16; 0x100],
-    pub pc: u16,
-    pub sp: u8,
-    pub v: [u8; 16],
-    pub i: u16,
-    pub dt: u8,
-    pub st: u8,
+   /// The memory, represented as an array of bytes.
+   pub memory: [u8; MEM_SIZE],
+
+   /// The stack, represented as an array of 16-bit words.
+   pub stack: [u16; 0x100],
+
+   /// The program counter, which points to the next instruction to be executed.
+   pub pc: u16,
+
+   /// The stack pointer, which points to the top of the stack.
+   pub sp: u8,
+
+   /// The general purpose registers, V0-VF.
+   pub v: [u8; 16],
+
+   /// The index register, I.
+   pub i: u16,
+
+   /// The delay timer register, DT.
+   pub dt: u8,
+
+   /// The sound timer register, ST.
+   pub st: u8,
 }
 
 impl Memory {
-    pub(crate) fn new() -> Memory {
-        let mut mem = Memory {
-            memory: [0; MEM_SIZE],
-            stack: [0; 0x100],
-            pc: 0x200,
-            sp: 0,
-            v: [0; 16],
-            i: 0,
-            dt: 0,
-            st: 0,
-        };
-        mem.load_sprites();
-        mem
-    }
+   /// Creates a new `Memory` instance.
+   pub(crate) fn new() -> Memory {
+       let mut mem = Memory {
+           memory: [0; MEM_SIZE],
+           stack: [0; 0x100],
+           pc: 0x200,
+           sp: 0,
+           v: [0; 16],
+           i: 0,
+           dt: 0,
+           st: 0,
+       };
+       mem.load_sprites();
+       mem
+   }
 
-    pub(crate) fn load(&self, addr: u16) -> u8 {
-        self.memory[addr as usize]
-    }
+   /// Loads a byte from memory at the specified address.
+   ///
+   /// # Arguments
+   ///
+   /// * `addr` - The address to load from.
+   ///
+   /// # Returns
+   ///
+   /// The byte at the specified address.
+   pub(crate) fn load(&self, addr: u16) -> u8 {
+       self.memory[addr as usize]
+   }
 
-    pub(crate) fn store(&mut self, addr: u16, val: u8) {
-        self.memory[addr as usize] = val;
-    }
+   /// Stores a byte to memory at the specified address.
+   ///
+   /// # Arguments
+   ///
+   /// * `addr` - The address to store to.
+   /// * `val` - The byte to store.
+   pub(crate) fn store(&mut self, addr: u16, val: u8) {
+       self.memory[addr as usize] = val;
+   }
 
-    pub(crate) fn read_reg(&self, reg: u8) -> u8 {
-        self.v[reg as usize]
-    }
+   /// Reads a register value.
+   ///
+   /// # Arguments
+   ///
+   /// * `reg` - The register to read from.
+   ///
+   /// # Returns
+   ///
+   /// The value of the specified register.
+   pub(crate) fn read_reg(&self, reg: u8) -> u8 {
+       self.v[reg as usize]
+   }
 
-    pub(crate) fn write_reg(&mut self, reg: u8, val: u8) {
-        self.v[reg as usize] = val;
-    }
+   /// Writes a value to a register.
+   ///
+   /// # Arguments
+   ///
+   /// * `reg` - The register to write to.
+   /// * `val` - The value to write.
+   pub(crate) fn write_reg(&mut self, reg: u8, val: u8) {
+       self.v[reg as usize] = val;
+   }
 
-    pub(crate) fn update_timers(&mut self) {
-        if self.dt > 0 {
-            self.dt -= 1;
-        }
+   /// Updates the delay timer and sound timer.
+   pub(crate) fn update_timers(&mut self) {
+       if self.dt > 0 {
+           self.dt -= 1;
+       }
 
-        if self.st > 0 {
-            self.st -= 1;
-        }
+       if self.st > 0 {
+           self.st -= 1;
+       }
 
-        // TODO: Play sound when sound timer is 0
-    }
+       // TODO: Play sound when sound timer is 0
+   }
 
-    pub(crate) fn pop_stack(&mut self) -> u16 {
-        self.sp -= 1;
-        self.stack[self.sp as usize]
-    }
+   /// Pops a value from the stack.
+   ///
+   /// # Returns
+   ///
+   /// The value that was popped from the stack.
+   pub(crate) fn pop_stack(&mut self) -> u16 {
+       self.sp -= 1;
+       self.stack[self.sp as usize]
+   }
 
-    pub(crate) fn push_stack(&mut self, val: u16) {
-        self.sp += 1;
-        self.stack[self.sp as usize] = val;
-    }
+   /// Pushes a value onto the stack.
+   ///
+   /// # Arguments
+   ///
+   /// * `val` - The value to push onto the stack.
+   pub(crate) fn push_stack(&mut self, val: u16) {
+       self.sp += 1;
+       self.stack[self.sp as usize] = val;
+   }
 
+   /// Resets the memory to its initial state.
     pub(crate) fn reset(&mut self) {
         self.pc = 0x200;
         self.sp = 0;
@@ -74,10 +134,17 @@ impl Memory {
         self.st = 0;
     }
 
+
+    /// Reads the next instruction from memory.
+    ///
+    /// # Returns
+    ///
+    /// The next instruction as a 16-bit value.
     pub(crate) fn read_instr(&self) -> u16 {
         (self.load(self.pc) as u16) << 8 | self.load(self.pc + 1) as u16
     }
 
+    /// Loads the sprites into memory.
     fn load_sprites(&mut self) {
         let sprites: [u8; 0x50] = [
             0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -101,6 +168,15 @@ impl Memory {
         self.memory[0..0x50].copy_from_slice(&sprites);
     }
 
+    /// Loads a sprite from memory.
+    ///
+    /// # Arguments
+    ///
+    /// * `nibble` - The number of nibbles (4-bit values) to load.
+    ///
+    /// # Returns
+    ///
+    /// The loaded sprite as a vector of bytes.
     pub(crate) fn load_sprite(&self, nibble: usize) -> Vec<u8> {
         let mut sprite = Vec::new();
         let start_addr = self.i as usize;
