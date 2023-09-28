@@ -34,7 +34,7 @@ pub(crate) enum Opcode {
     LoadBCDIntoMem(u8),
     StoreRegsIntoMem(u8),
     LoadRegsFromMem(u8),
-    Unknown(),
+    Unknown,
 }
 
 pub(crate) fn parse_opcode(opcode: u16) -> Opcode {
