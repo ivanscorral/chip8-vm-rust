@@ -1,6 +1,6 @@
-[chip8-vm-rust logo](chip8-vm-rust_logo.svg)
-
 # chip8-vm-rust
+![chip8-vm-rust logo](assets/header-readme.png)
+
 An SDL2-based interpreter for the Chip-8 programming language, written in Rust. Compatible with all standard games and programs, it provides a seamless experience for Chip-8 enthusiasts and developers alike.
 
 ## Features
