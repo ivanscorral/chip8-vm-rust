@@ -38,6 +38,7 @@ impl CPU {
     pub fn execute(&mut self, raw_opcode: u16) {
         let (opcode, reg_x, reg_y) = parse_opcode(raw_opcode);
 
+
         let val_x = self.memory.read_reg(reg_x);
         let val_y = self.memory.read_reg(reg_y);
 
@@ -45,10 +46,14 @@ impl CPU {
             Opcode::Halt => self.halt = true,
             Opcode::ClearScreen => self.gpu.reset(),
             Opcode::Return => self.memory.pc = self.memory.pop_stack(),
-            Opcode::JumpToAddress(addr) => self.memory.pc = addr,
+            Opcode::JumpToAddress(addr) => {
+                self.memory.pc = addr;
+                return;
+            }
             Opcode::CallAddress(addr) => {
                 self.memory.push_stack(self.memory.pc);
-                self.memory.pc = addr
+                self.memory.pc = addr;
+                return;
             }
             Opcode::SkipIfRegEqualsByte(k) => {
                 if val_x == k {
@@ -168,6 +173,8 @@ impl CPU {
                 self.halt = true;
             }
         }
+        self.increment();
+
         self.print_registers()
     }
 
@@ -183,7 +190,6 @@ impl CPU {
         self.execute(self.memory.read_instr());
         self.update_timers();
         //self.poll();
-        self.increment();
     }
 
     /// Prints the values of all the CPU registers.
