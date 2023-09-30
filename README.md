@@ -1,6 +1,11 @@
 # chip8-vm-rust
 ![chip8-vm-rust logo](assets/header-readme.png)
 
+## Build status:
+ [![Rust](https://github.com/ivanscorral/chip8-vm-rust/actions/workflows/rust.yml/badge.svg)](https://github.com/ivanscorral/chip8-vm-rust/actions/workflows/rust.yml)
+
+ ## Introduction
+
 An SDL2-based interpreter for the Chip-8 programming language, written in Rust. Compatible with all standard games and programs, it provides a seamless experience for Chip-8 enthusiasts and developers alike.
 
 ## Features
