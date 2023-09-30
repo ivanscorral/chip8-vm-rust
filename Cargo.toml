@@ -16,10 +16,11 @@ name = "chip8"
 path = "chip8/src/main.rs"
 
 [[test]]
-name = "opcode_test"
+name = "opcode_tests"
 path = "chip8/tests/opcode_tests.rs"
 
 [dependencies]
 
 sdl2 = "0.35.2"
 rand = "0.8.5"
+chip8 = { path = "chip8/" }
