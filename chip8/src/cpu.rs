@@ -18,7 +18,7 @@ impl Keyboard for CPU {
 
 /// Represents the CPU of the Chip-8 virtual machine.
 pub struct CPU {
-    memory: Memory,
+    pub memory: Memory,
     gpu: GPU,
     key_state: [u8; 16],
     pub halt: bool,
@@ -56,7 +56,9 @@ impl CPU {
                 }
             }
             Opcode::SkipIfRegNotEqualsByte(k) => {
+                println!("V{:X} = 0x{:02X}\t k = {:02X}", reg_x, val_x, k);
                 if val_x != k {
+                    println!("Skipping");
                     self.increment()
                 }
             }
