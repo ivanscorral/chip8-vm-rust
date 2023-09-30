@@ -43,7 +43,11 @@ impl CPU {
         let val_y = self.memory.read_reg(reg_y);
 
         match opcode {
-            Opcode::Halt => self.halt = true,
+            Opcode::Halt => {
+                self.halt = true;
+                println!("Halt");
+                return;
+            },
             Opcode::ClearScreen => self.gpu.reset(),
             Opcode::Return => self.memory.pc = self.memory.pop_stack(),
             Opcode::JumpToAddress(addr) => {
