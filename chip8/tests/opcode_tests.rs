@@ -1,6 +1,6 @@
 #[cfg(test)]
 
-mod tests {
+pub mod tests {
  use chip8::cpu::CPU;
 
  #[test]

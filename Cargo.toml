@@ -15,6 +15,10 @@ members = [
 name = "chip8"
 path = "chip8/src/main.rs"
 
+[[test]]
+name = "opcode_test"
+path = "chip8/tests/opcode_tests.rs"
+
 [dependencies]
 
 sdl2 = "0.35.2"

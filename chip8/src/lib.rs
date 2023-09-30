@@ -2,6 +2,7 @@ pub mod cpu;
 pub(crate) mod memory;
 pub(crate) mod gpu;
 pub(crate) mod instructions;
+pub mod
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
