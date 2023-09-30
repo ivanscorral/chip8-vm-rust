@@ -120,8 +120,8 @@ impl Memory {
    ///
    /// * `val` - The value to push onto the stack.
    pub(crate) fn push_stack(&mut self, val: u16) {
-       self.sp += 1;
        self.stack[self.sp as usize] = val;
+         self.sp += 1;
    }
 
    /// Resets the memory to its initial state.
