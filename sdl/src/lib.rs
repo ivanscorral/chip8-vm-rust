@@ -194,6 +194,13 @@ impl SDL {
             } => {
                 if let Some(&(_, index)) = key_mappings.iter().find(|&&(key, _)| key == scancode) {
                     cpu.key_pressed(index);
+                } else {
+                    match scancode {
+                        Scancode::Space => cpu.halt = !cpu.halt,
+                        Scancode::M => cpu.cycle(),
+                        Scancode::P => cpu.print_registers(),
+                        _ => {}
+                    }
                 }
             }
             Event::KeyUp {

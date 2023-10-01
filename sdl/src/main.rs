@@ -5,4 +5,4 @@ fn main() {
     let mut cpu = cpu::CPU::new();
 
     sdl.run(&mut cpu)
-}
+} 
