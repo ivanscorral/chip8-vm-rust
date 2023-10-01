@@ -259,6 +259,7 @@ impl CPU {
     }
 
     pub fn reset(&mut self) {
+        println!("Resetting CPU");
         self.memory.reset();
         self.gpu.reset();
         self.halt = false;

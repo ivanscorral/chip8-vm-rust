@@ -199,6 +199,7 @@ impl SDL {
                         Scancode::Space => cpu.halt = !cpu.halt,
                         Scancode::M => cpu.cycle(),
                         Scancode::P => cpu.print_registers(),
+                        Scancode::Return => cpu.reset(),
                         _ => {}
                     }
                 }

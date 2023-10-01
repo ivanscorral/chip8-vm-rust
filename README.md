@@ -43,6 +43,7 @@ The module's architecture is designed to efficiently capture and process keyboar
 - **SPACE Key**: A toggle mechanism in the CPU's state management system responds to this key, allowing users to halt or resume the instruction execution flow.
 - **M Key**: Invoking the `cpu.cycle()` method, this key provides users with granular control, enabling them to advance the CPU by a single cycle.
 - **P Key**: Activates the `cpu.print_registers()` function, offering users a snapshot of the CPU's current register states.
+- **Return/Enter Key**: Resets the CPU, clearing registers, memory, and reinitializing the program counter.
 - **Chip-8 Keypad Mapping**: A comprehensive key-to-function mapping system ensures that key presses correlate directly with the `cpu.key_pressed(index)` function, guaranteeing precise and responsive input handling.
 
 ### Display Rendering Mechanics
