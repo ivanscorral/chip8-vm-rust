@@ -105,11 +105,9 @@ impl SDL {
             // Poll keyboard events and send them to the CPU.
 
             // Run the CPU for one frame.
-            'cpu_loop: for _ in 0..CPU_CYCLES_PER_FRAME {
+            for _ in 0..CPU_CYCLES_PER_FRAME {
                 if !cpu.halt {
                     cpu.cycle();
-                } else {
-                    break 'cpu_loop;
                 }
             }
 
@@ -129,7 +127,19 @@ impl SDL {
     ///
     /// # Arguments
     ///
-    /// * `gpu` - The GPU buffer to render.
+    /// * `gpu` - The GPU instance from the `chip8` crate.
+    ///
+    /// # Panics
+    /// This function will panic if the canvas fails to initialize.
+    ///
+    /// # Behavior
+    ///
+    /// First, the function calculates the ratio of the screen width to the VRAM width.
+    /// This is stored as `upscale_ratio` and is later used to render
+    /// rects of size `upscale_ratio` x `upscale_ratio` for each pixel in the GPU buffer.
+    ///
+    /// Note: The function assumes the aspect ratio is the original 2:1, other
+    /// aspect ratios will probably fail or produce distorted rendering.
     fn render_gpu_buffer(&mut self, gpu: &mut gpu::GPU) {
         let upscale_ratio: usize = WINDOW_WIDTH / gpu::VRAM_WIDTH;
 
@@ -168,7 +178,7 @@ impl SDL {
     /// When a key is pressed, the corresponding bit in the `cpu`'s `key_pressed` register is set.
     /// When a key is released, the corresponding bit in the `cpu`'s `key_released` register is set.
     fn handle_keyboard_input(&mut self, cpu: &mut cpu::CPU, event: Event) {
-        let key_mappings: [(sdl2::keyboard::Scancode, usize); 16] = [
+        let key_mappings: [(Scancode, usize); 16] = [
             (Scancode::Num1, 0x1),
             (Scancode::Num2, 0x2),
             (Scancode::Num3, 0x3),
@@ -195,6 +205,7 @@ impl SDL {
                 if let Some(&(_, index)) = key_mappings.iter().find(|&&(key, _)| key == scancode) {
                     cpu.key_pressed(index);
                 } else {
+                    // Handle scancodes that are not mapped to a key
                     match scancode {
                         Scancode::Space => cpu.halt = !cpu.halt,
                         Scancode::M => cpu.cycle(),
