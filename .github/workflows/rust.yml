@@ -36,5 +36,3 @@ jobs:
         uses: actions/checkout@v3
       - name: Run tests
         run: cargo test --verbose
-        # TODO: remove when doctest is fixed
-        continue-on-error: true

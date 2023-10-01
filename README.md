@@ -1,5 +1,6 @@
 # chip8-vm-rust
  [![Rust](https://github.com/ivanscorral/chip8-vm-rust/actions/workflows/rust.yml/badge.svg)](https://github.com/ivanscorral/chip8-vm-rust/actions/workflows/rust.yml)
+https://github.com/{owner}/{repo}/workflows/{workflow_name}/badge.svg
 
 ![chip8-vm-rust logo](assets/header-readme.png)
 

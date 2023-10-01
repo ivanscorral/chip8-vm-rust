@@ -11,9 +11,6 @@ members = [
     "sdl",
 ]
 
-[lib]
-name = "sdl"
-path = "sdl/src/lib.rs"
 
 [[test]]
 name = "opcode_tests"

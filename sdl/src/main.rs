@@ -1,4 +1,3 @@
-extern crate sdl;
 
 use chip8::cpu;
 fn main() {
