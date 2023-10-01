@@ -1,10 +1,5 @@
-pub mod cpu;
-pub mod instructions;
-pub mod gpu;
-pub mod memory;
-
 use std::time::{Instant, Duration};
-use cpu::CPU;
+use chip8::cpu::CPU;
 
 const TARGET_CLK: u64 = 16;
 

@@ -27,6 +27,7 @@ version = "0.1.0"
 dependencies = [
  "chip8",
  "rand",
+ "sdl",
  "sdl2",
 ]
 
@@ -92,6 +93,10 @@ dependencies = [
 [[package]]
 name = "sdl"
 version = "0.1.0"
+dependencies = [
+ "chip8",
+ "sdl2",
+]
 
 [[package]]
 name = "sdl2"

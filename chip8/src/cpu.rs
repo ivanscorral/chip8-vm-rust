@@ -19,8 +19,8 @@ impl Keyboard for CPU {
 /// Represents the CPU of the Chip-8 virtual machine.
 pub struct CPU {
     pub memory: Memory,
-    gpu: GPU,
-    key_state: [u8; 16],
+    pub gpu: GPU,
+    key_state: u16,
     pub halt: bool,
 }
 
@@ -29,15 +29,17 @@ impl CPU {
         CPU {
             memory: Memory::new(),
             gpu: GPU::new(),
-            key_state: [0; 16],
+            key_state: 0x0000,
             halt: false,
         }
-    }
 
+    }
+    pub fn get_gpu(&mut self) -> &mut GPU {
+        &mut self.gpu
+    }
     /// Executes the given opcode on the CPU.
     pub fn execute(&mut self, raw_opcode: u16) {
         let (opcode, reg_x, reg_y) = parse_opcode(raw_opcode);
-
 
         let val_x = self.memory.read_reg(reg_x);
         let val_y = self.memory.read_reg(reg_y);
@@ -47,7 +49,7 @@ impl CPU {
                 self.halt = true;
                 println!("Halt");
                 return;
-            },
+            }
             Opcode::ClearScreen => self.gpu.reset(),
             Opcode::Return => self.memory.pc = self.memory.pop_stack(),
             Opcode::JumpToAddress(addr) => {
@@ -83,17 +85,13 @@ impl CPU {
             Opcode::AndRegWithReg => self.memory.write_reg(reg_x, val_x & val_y),
             Opcode::XorRegWithReg => self.memory.write_reg(reg_x, val_x ^ val_y),
 
-            Opcode::AddRegToReg =>  {
+            Opcode::AddRegToReg => {
                 let sum = self.add_overflow(val_x, val_y);
-                self
-                .memory
-                .write_reg(reg_x, sum);
+                self.memory.write_reg(reg_x, sum);
             }
             Opcode::SubtractRegFromReg => {
                 let diff = self.sub_overflow(val_x, val_y);
-                self
-                .memory
-                .write_reg(reg_x, diff);
+                self.memory.write_reg(reg_x, diff);
             }
 
             Opcode::ShiftRight => {
@@ -246,12 +244,18 @@ impl CPU {
         println!();
     }
 
-    pub fn key_pressed(&mut self, key: u8) {
-        self.key_state[key as usize] = 1;
+    pub fn key_pressed(&mut self, index: usize) {
+        self.key_state |= 1 << index;
+        //print the key_state's binary representation
+        println!("key_state {:16b}", self.key_state);
     }
 
-    pub fn key_released(&mut self, key: u8) {
-        self.key_state[key as usize] = 0;
+    pub fn key_released(&mut self, index: usize) {
+        self.key_state &= !(1 << index);
+    }
+
+    pub fn is_key_pressed(&self, index: usize) -> bool {
+        self.key_state & (1 << index) != 0
     }
 
     pub fn reset(&mut self) {

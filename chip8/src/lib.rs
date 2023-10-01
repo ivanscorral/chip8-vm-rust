@@ -1,4 +1,4 @@
 pub mod cpu;
-pub(crate) mod memory;
-pub(crate) mod gpu;
-pub(crate) mod instructions;
+pub mod memory;
+pub mod gpu;
+pub mod instructions;

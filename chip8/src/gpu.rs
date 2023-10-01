@@ -10,7 +10,7 @@ pub type Coordinate = (usize, usize);
 /// The graphics processing unit (GPU) responsible for rendering graphics to the screen.
 pub struct GPU {
     /// The video buffer, represented as a 2D array of pixels.
-    video_buffer: [[u8; VRAM_WIDTH]; VRAM_HEIGHT],
+    pub video_buffer: [[u8; VRAM_WIDTH]; VRAM_HEIGHT],
 }
 
 impl GPU {

@@ -11,9 +11,9 @@ members = [
     "sdl",
 ]
 
-[[bin]]
-name = "chip8"
-path = "chip8/src/main.rs"
+[lib]
+name = "sdl"
+path = "sdl/src/lib.rs"
 
 [[test]]
 name = "opcode_tests"
@@ -24,3 +24,4 @@ path = "chip8/tests/opcode_tests.rs"
 sdl2 = "0.35.2"
 rand = "0.8.5"
 chip8 = { path = "chip8/" }
+sdl = { path = "sdl/" }
