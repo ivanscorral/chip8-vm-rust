@@ -2,28 +2,23 @@ name: Rust
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  dependencies:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Install dependencies
-      run: sudo apt update && sudo apt install -y libsdl2-dev
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: sudo apt update && sudo apt install -y libsdl2-dev
+      - name: Build
+        run: cargo build --verbose
+      - name: Run tests
+        run: cargo test --verbose
