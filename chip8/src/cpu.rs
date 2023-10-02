@@ -4,6 +4,39 @@ use crate::memory::Memory;
 
 use rand::Rng;
 
+/// Represents a binary-coded decimal (BCD) value.
+///
+/// A BCD is a class of binary encodings of decimal numbers where each decimal
+/// digit is represented by a fixed number of binary digits. In the context
+/// of this representation, each decimal digit is represented by an `u8`.
+///
+/// For example:
+/// - The number 123 would be represented as `(1, 2, 3)`.
+/// - The number 45 would be represented as `(0, 4, 5)`.
+type BCD = (u8, u8, u8);
+
+/// Trait for types that can be represented as a binary-coded decimal (BCD).
+///
+/// This trait provides a method to convert numbers into their BCD representation.
+pub trait BCDRepresentable {
+    /// Converts the number into its BCD representation.
+    ///
+    /// # Returns
+    ///
+    /// Returns a tuple of three `u8` values, representing the hundreds,
+    /// tens, and ones places of the number, respectively.
+    fn to_bcd(&self) -> BCD;
+}
+
+impl BCDRepresentable for u8 {
+    fn to_bcd(&self) -> BCD {
+        let hundreds = self / 100;
+        let tens = (self % 100) / 10;
+        let ones = self % 10;
+        (hundreds, tens, ones)
+    }
+}
+
 /// Represents the CPU of the Chip-8 virtual machine.
 pub struct CPU {
     pub memory: Memory,
@@ -124,12 +157,15 @@ impl CPU {
             }
             Opcode::SkipIfKeyPressed => {
                 /* SKP Vx instruction */
-                // TODO: Unimplemented
-                todo!();
+                if self.is_key_pressed(val_x.into()) {
+                    self.increment();
+                }
             }
             Opcode::SkipIfKeyNotPressed => {
                 /* SKNP Vx instruction */
-                todo!("Unimplemented");
+                if !self.is_key_pressed(val_x.into()) {
+                    self.increment();
+                }
             }
             Opcode::LoadDelayTimerIntoReg => self.memory.write_reg(reg_x, self.memory.dt),
 
@@ -147,16 +183,17 @@ impl CPU {
                         }
                     }
                 }
-
             }
             Opcode::LoadRegIntoDelayTimer => self.memory.dt = val_x,
             Opcode::LoadRegIntoSoundTimer => self.memory.st = val_x,
             Opcode::AddRegToIndex => self.memory.i = self.memory.i.wrapping_add(val_x as u16),
-            Opcode::LoadFontIntoReg => {
-                todo!()
-            }
+            Opcode::LoadFontIntoReg => self.memory.i = (val_x * 5) as u16,
             Opcode::LoadBCDIntoMem => {
-                todo!()
+                let i = self.memory.i;
+                let bcd_representation = val_x.to_bcd();
+                self.memory.store(i, bcd_representation.0);
+                self.memory.store(i + 1, bcd_representation.1);
+                self.memory.store(i + 2, bcd_representation.2);
             }
             Opcode::StoreRegsIntoMem => {
                 for offset in 0..0x10 {
@@ -168,8 +205,10 @@ impl CPU {
             }
             Opcode::LoadRegsFromMem => {
                 for offset in 0..0x10 {
-                    self.memory
-                        .write_reg(offset, self.memory.load(self.memory.i.wrapping_add(offset as u16)));
+                    self.memory.write_reg(
+                        offset,
+                        self.memory.load(self.memory.i.wrapping_add(offset as u16)),
+                    );
                 }
             }
             _ => {

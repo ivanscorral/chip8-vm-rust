@@ -77,7 +77,7 @@ impl Memory {
     /// # Returns
     ///
     /// The value of the specified register.
-    pub(crate) fn read_reg(&self, reg: u8) -> u8 {
+    pub fn read_reg(&self, reg: u8) -> u8 {
         self.v[reg as usize]
     }
 
@@ -87,7 +87,7 @@ impl Memory {
     ///
     /// * `reg` - The register to write to.
     /// * `val` - The value to write.
-    pub(crate) fn write_reg(&mut self, reg: u8, val: u8) {
+    pub fn write_reg(&mut self, reg: u8, val: u8) {
         self.v[reg as usize] = val;
     }
 
