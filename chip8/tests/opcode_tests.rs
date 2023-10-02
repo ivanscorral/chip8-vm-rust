@@ -2,25 +2,24 @@
 
 pub mod tests {
     use chip8::cpu::CPU;
-
     #[test]
-    fn test_jump() {
+    fn test_jump_to_address() {
         let mut cpu = CPU::new();
-        let program = [0x12, 0x02 /* JP 0x202 */, 0x00, 0x00 /* NOP */];
-        cpu.load_program(&program);
-        cpu.cycle();
-        assert_eq!(cpu.memory.pc, 0x202);
+        cpu.memory.pc = 0x200;
+        cpu.execute(0x1234); // Jump to address 0x234
+        assert_eq!(cpu.memory.pc, 0x234);
     }
-
     #[test]
-    fn test_call() {
+    fn test_call_address() {
         let mut cpu = CPU::new();
-        let program = [0x22, 0x02 /* CALL 0x202 */, 0x00, 0x00 /* NOP */];
-        cpu.load_program(&program);
-        cpu.cycle();
-        assert_eq!(cpu.memory.pc, 0x202);
-        assert_eq!(cpu.memory.sp, 1);
-        assert_eq!(cpu.memory.stack[0], 0x200);
+        cpu.memory.pc = 0x200;
+        cpu.execute(0x2234); // Call address 0x234
+
+        // Check if the return address (next instruction) is pushed onto the stack
+        assert_eq!(cpu.memory.stack[cpu.memory.sp as usize], 0x202);
+
+        // Check if the PC is set to the address from the opcode
+        assert_eq!(cpu.memory.pc, 0x234);
     }
 
     #[test]

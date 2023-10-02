@@ -46,7 +46,7 @@ impl CPU {
                 return;
             }
             Opcode::CallAddress(addr) => {
-                self.memory.push_stack(self.memory.pc);
+                self.memory.push_stack(self.memory.pc.wrapping_add(2));
                 self.memory.pc = addr;
                 return;
             }
@@ -134,10 +134,18 @@ impl CPU {
             Opcode::LoadDelayTimerIntoReg => self.memory.write_reg(reg_x, self.memory.dt),
 
             Opcode::LoadKeyIntoReg => {
-                /* LD Vx, K */
                 if self.key_state == 0 {
+                    // No key is being pressed, so we wait for a key press
                     self.waiting_for_key = Some(reg_x);
-                    self.memory.pc = self.memory.pc.wrapping_sub(2);
+                    self.memory.pc = self.memory.pc.wrapping_sub(2); // Decrement PC to repeat this instruction until a key is pressed
+                } else {
+                    for i in 0..16 {
+                        // A key is already being pressed, so we store its value in Vx
+                        if self.is_key_pressed(i) {
+                            self.memory.write_reg(reg_x, i as u8);
+                            break;
+                        }
+                    }
                 }
 
             }
