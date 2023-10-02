@@ -4,24 +4,13 @@ use crate::memory::Memory;
 
 use rand::Rng;
 
-/// Trait representing a keyboard that can be polled for input.
-trait Keyboard {
-    /// Polls the keyboard for input.
-    fn poll(&mut self);
-}
-
-impl Keyboard for CPU {
-    fn poll(&mut self) {
-        unimplemented!()
-    }
-}
-
 /// Represents the CPU of the Chip-8 virtual machine.
 pub struct CPU {
     pub memory: Memory,
-    pub gpu: GPU,
-    key_state: u16,
+    gpu: GPU,
+    pub key_state: u16,
     pub halt: bool,
+    waiting_for_key: Option<u8>,
 }
 
 impl CPU {
@@ -31,8 +20,8 @@ impl CPU {
             gpu: GPU::new(),
             key_state: 0x0000,
             halt: false,
+            waiting_for_key: None,
         }
-
     }
     pub fn get_gpu(&mut self) -> &mut GPU {
         &mut self.gpu
@@ -145,11 +134,16 @@ impl CPU {
             Opcode::LoadDelayTimerIntoReg => self.memory.write_reg(reg_x, self.memory.dt),
 
             Opcode::LoadKeyIntoReg => {
-                todo!()
+                /* LD Vx, K */
+                if self.key_state == 0 {
+                    self.waiting_for_key = Some(reg_x);
+                    self.memory.pc = self.memory.pc.wrapping_sub(2);
+                }
+
             }
             Opcode::LoadRegIntoDelayTimer => self.memory.dt = val_x,
             Opcode::LoadRegIntoSoundTimer => self.memory.st = val_x,
-            Opcode::AddRegToIndex => self.memory.i = val_x as u16 + self.memory.i,
+            Opcode::AddRegToIndex => self.memory.i = self.memory.i.wrapping_add(val_x as u16),
             Opcode::LoadFontIntoReg => {
                 todo!()
             }
@@ -159,7 +153,7 @@ impl CPU {
             Opcode::StoreRegsIntoMem => {
                 for offset in 0..0x10 {
                     self.memory.store(
-                        self.memory.i + offset as u16,
+                        self.memory.i.wrapping_add(offset as u16),
                         self.memory.read_reg(offset as u8),
                     );
                 }
@@ -167,7 +161,7 @@ impl CPU {
             Opcode::LoadRegsFromMem => {
                 for offset in 0..0x10 {
                     self.memory
-                        .write_reg(offset, self.memory.load(self.memory.i + offset as u16));
+                        .write_reg(offset, self.memory.load(self.memory.i.wrapping_add(offset as u16)));
                 }
             }
             _ => {
@@ -246,8 +240,11 @@ impl CPU {
 
     pub fn key_pressed(&mut self, index: usize) {
         self.key_state |= 1 << index;
-        //print the key_state's binary representation
-        println!("key_state {:16b}", self.key_state);
+        if let Some(reg) = self.waiting_for_key {
+            self.memory.write_reg(reg, index as u8);
+            self.waiting_for_key = None;
+        }
+        println!("key_state: {:04X}", self.key_state);
     }
 
     pub fn key_released(&mut self, index: usize) {
