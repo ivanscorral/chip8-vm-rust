@@ -163,4 +163,22 @@ pub mod tests {
         // The result should be the bitwise XOR of the initial values
         assert_eq!(cpu.memory.read_reg(0), 0b01100110); // The result should be 0b01100110
     }
+
+    #[test]
+    fn test_subtract_vx_vy() {
+        let mut cpu = CPU::new();
+
+        cpu.memory.write_reg(0, 6); // V0 = 6
+        cpu.memory.write_reg(1, 4); // V1 = 4
+
+        cpu.execute(0x8015);
+
+        assert_eq!(cpu.memory.read_reg(0), 0x2);
+        assert_eq!(cpu.memory.read_reg(0xF), 0x0);
+
+        cpu.execute(0x8015);
+
+        assert_eq!(cpu.memory.read_reg(0), 0xFE); //
+        assert_eq!(cpu.memory.read_reg(0xF), 0x1);
+    }
 }

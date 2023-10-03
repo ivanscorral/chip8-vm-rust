@@ -309,16 +309,19 @@ impl CPU {
         self.halt = false;
     }
 
+    fn handle_overflow(&mut self, result: u8, overflow: bool) -> u8 {
+        self.memory.write_reg(0xF, if overflow { 1 } else { 0 });
+        result
+    }
+
     fn add_overflow(&mut self, x: u8, y: u8) -> u8 {
         let (sum, overflow) = x.overflowing_add(y);
-        self.memory.write_reg(0xF, overflow as u8);
-        sum
+        self.handle_overflow(sum, overflow)
     }
 
     fn sub_overflow(&mut self, x: u8, y: u8) -> u8 {
         let (diff, overflow) = x.overflowing_sub(y);
-        self.memory.write_reg(0xF, !overflow as u8);
-        diff
+        self.handle_overflow(diff, overflow)
     }
 
     pub fn load_program(&mut self, program: &[u8]) {
