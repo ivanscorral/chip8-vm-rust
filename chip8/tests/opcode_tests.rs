@@ -4,14 +4,14 @@ pub mod tests {
 
     use chip8::cpu::CPU;
     #[test]
-    fn test_jump_to_address() {
+    fn test_jump_n() {
         let mut cpu = CPU::new();
         cpu.memory.pc = 0x200;
         cpu.execute(0x1234); // Jump to address 0x234
         assert_eq!(cpu.memory.pc, 0x234);
     }
     #[test]
-    fn test_call_address() {
+    fn test_call_n() {
         let mut cpu = CPU::new();
         cpu.memory.pc = 0x200;
         cpu.execute(0x2234); // Call address 0x234
@@ -24,7 +24,7 @@ pub mod tests {
     }
 
     #[test]
-    fn test_add_byte() {
+    fn test_add_byte_vx() {
         let mut cpu = CPU::new();
 
         // Set V0 to 0x02
@@ -38,7 +38,7 @@ pub mod tests {
     }
 
     #[test]
-    fn test_skip_if_equal_byte() {
+    fn test_skip_vx_equals_byte() {
         let mut cpu = CPU::new();
 
         // Set V0 to 0x02
@@ -54,7 +54,7 @@ pub mod tests {
     }
 
     #[test]
-    fn test_skip_if_not_equal_byte() {
+    fn test_skip_vx_not_equal_byte() {
         let mut cpu = CPU::new();
 
         // Set V0 to 0x02
@@ -70,7 +70,7 @@ pub mod tests {
     }
 
     #[test]
-    fn test_load_into_reg() {
+    fn test_load_byte_vx() {
         let mut cpu = CPU::new();
 
         // For each register, set its value and then check its value
@@ -84,7 +84,7 @@ pub mod tests {
     }
 
     #[test]
-    fn test_or_reg() {
+    fn test_or_vx_vy() {
         let mut cpu = CPU::new();
 
         // Set initial register values
@@ -99,7 +99,7 @@ pub mod tests {
     }
 
     #[test]
-    fn test_skip_if_equals_reg() {
+    fn test_skip_vx_eq_vy() {
         let mut cpu = CPU::new();
 
         // Set initial register values
