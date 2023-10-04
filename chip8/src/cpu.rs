@@ -309,15 +309,75 @@ impl CPU {
         self.halt = false;
     }
 
+    /// Handles the overflow by updating the memory register `0xF`.
+    ///
+    /// If there's an overflow, the memory register `0xF` is set to `1`, otherwise it's set to `0`.
+    ///
+    /// # Arguments
+    ///
+    /// * `result` - The result of the arithmetic operation.
+    /// * `overflow` - A boolean indicating whether an overflow occurred.
+    ///
+    /// # Returns
+    ///
+    /// Returns the `result` passed to the function.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    ///    let mut cpu = ...; // CPU object
+    ///    let result = obj.handle_overflow(0xFA, true);
+    ///    assert_eq!(result, 250);
+    /// ```
     fn handle_overflow(&mut self, result: u8, overflow: bool) -> u8 {
         self.memory.write_reg(0xF, if overflow { 1 } else { 0 });
         result
     }
 
+    /// Adds two `u8` numbers with overflow handling.
+    ///
+    /// If the addition results in an overflow, the memory register `0xF` is set to `1`, otherwise it's set to `0`.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - First operand.
+    /// * `y` - Second operand.
+    ///
+    /// # Returns
+    ///
+    /// Returns the sum of `x` and `y`.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    ///    let mut cpu = ...; // CPU object
+    ///    let sum = cpu.add_overflow(250, 10);
+    ///    assert_eq!(sum, 4); // 260 wraps around in u8
+    /// ```
     fn add_overflow(&mut self, x: u8, y: u8) -> u8 {
         let (sum, overflow) = x.overflowing_add(y);
         self.handle_overflow(sum, overflow)
     }
+
+    /// Subtracts two `u8` numbers with overflow handling.
+    ///
+    /// If the subtraction results in an underflow, the memory register `0xF` is set to `1`, otherwise it's set to `0`.
+    ///
+    /// # Arguments
+    ///
+    /// * `x` - Minuend.
+    /// * `y` - Subtrahend.
+    ///
+    /// # Returns
+    ///
+    /// Returns the difference of `x` and `y`.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    ///     let difference = cpu.sub_overflow(0x0A, 0x14);
+    ///     assert_eq!(difference, 0xF6); // -10 wraps around in u8
+    /// ```
 
     fn sub_overflow(&mut self, x: u8, y: u8) -> u8 {
         let (diff, overflow) = x.overflowing_sub(y);
