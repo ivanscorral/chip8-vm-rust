@@ -10,29 +10,19 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  install_dependencies:
+  build_and_test:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Install dependencies
         run: sudo apt update && sudo apt install -y libsdl2-dev
 
-  build:
-    needs: install_dependencies
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
       - name: Build
         run: cargo build --verbose
 
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
       - name: Run tests
         run: cargo test --verbose
+aa
