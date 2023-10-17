@@ -37,6 +37,12 @@ impl BCDRepresentable for u8 {
     }
 }
 
+
+struct MockRand {
+    active: bool,
+    val: u8,
+}
+
 /// Represents the CPU of the Chip-8 virtual machine.
 pub struct CPU {
     pub memory: Memory,
@@ -44,6 +50,7 @@ pub struct CPU {
     pub key_state: u16,
     pub halt: bool,
     waiting_for_key: Option<u8>,
+    mock_rand: MockRand,
 }
 
 impl CPU {
@@ -54,6 +61,10 @@ impl CPU {
             key_state: 0x0000,
             halt: false,
             waiting_for_key: None,
+            mock_rand: MockRand {
+                active: false,
+                val: 0,
+            },
         }
     }
     pub fn get_gpu(&mut self) -> &mut GPU {
@@ -92,9 +103,7 @@ impl CPU {
                 }
             }
             Opcode::SkipIfRegNotEqualsByte(k) => {
-                println!("V{:X} = 0x{:02X}\t k = {:02X}", reg_x, val_x, k);
                 if val_x != k {
-                    println!("Skipping");
                     self.increment()
                 }
             }
@@ -147,11 +156,17 @@ impl CPU {
             Opcode::JumpToAddressPlusV0(addr) => {
                 let v0 = self.memory.read_reg(0) as u16;
                 self.memory.pc = addr.wrapping_add(v0);
+                return;
             }
             Opcode::RandomByte(k) => {
                 let mut rng = rand::thread_rng();
                 let rand_u8 = rng.gen::<u8>();
-                self.memory.write_reg(reg_x, rand_u8 & k);
+                if !self.mock_rand.active {
+                    self.memory.write_reg(reg_x, rand_u8 & k);
+                } else {
+                    self.memory.write_reg(reg_x, self.mock_rand.val & k);
+                    self.mock_rand.active = false;
+                }
             }
             Opcode::DrawSprite(nibble) => {
                 /* DRW Vx, Vy, nibble instruction */
@@ -270,6 +285,14 @@ impl CPU {
             }
         }
         println!();
+    }
+
+
+    pub fn mock_random_byte(&mut self, val: u8) {
+        self.mock_rand = MockRand {
+            active: true,
+            val,
+        };
     }
 
     /// Prints the memory region from `start` to `end` (inclusive) with the specified number of tabs.

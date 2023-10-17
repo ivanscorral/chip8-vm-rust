@@ -286,8 +286,7 @@ pub mod tests {
     }
 
     #[test]
-
-    fn test_sne() {
+    fn test_sne_vx_vy() {
         let mut cpu = CPU::new();
 
         cpu.memory.write_reg(0, 1);
@@ -296,6 +295,41 @@ pub mod tests {
         cpu.execute(0x9010);
 
         assert_eq!(cpu.memory.pc, 0x204);
-
     }
+
+    #[test]
+    fn test_ld_i_addr() {
+        let mut cpu = CPU::new();
+
+        cpu.execute(0xA145);
+
+        assert_eq!(cpu.memory.i, 0x145);
+    }
+
+    #[test]
+    fn test_jp_v0_addr() {
+        let mut cpu = CPU::new();
+
+        cpu.memory.write_reg(0, 0x10);
+
+        cpu.execute(0xB100);
+
+        assert_eq!(cpu.memory.pc, 0x110);
+    }
+
+    #[test]
+    fn test_rnd_vx_byte() {
+        let mut cpu = CPU::new();
+
+        // Mock the random number generation to always return 0xAB
+
+        cpu.mock_random_byte(0xAB);
+
+        // Execute the RND Vx, byte opcode with kk = 0xCD
+        cpu.execute(0xC0CD);
+
+        // 0xAB AND 0xCD = 0x89
+        assert_eq!(cpu.memory.read_reg(0), 0x89);
+    }
+
 }
