@@ -73,7 +73,10 @@ impl CPU {
                 return;
             }
             Opcode::ClearScreen => self.gpu.reset(),
-            Opcode::Return => self.memory.pc = self.memory.pop_stack(),
+            Opcode::Return => {
+                self.memory.pc = self.memory.pop_stack();
+                return;
+            }
             Opcode::JumpToAddress(addr) => {
                 self.memory.pc = addr;
                 return;
@@ -106,13 +109,13 @@ impl CPU {
             Opcode::OrRegWithReg => self.memory.write_reg(reg_x, val_x | val_y),
             Opcode::AndRegWithReg => self.memory.write_reg(reg_x, val_x & val_y),
             Opcode::XorRegWithReg => self.memory.write_reg(reg_x, val_x ^ val_y),
-
             Opcode::AddRegToReg => {
                 let sum = self.add_overflow(val_x, val_y);
                 self.memory.write_reg(reg_x, sum);
             }
             Opcode::SubtractRegFromReg => {
-                let diff = self.sub_overflow(val_x, val_y);
+                self.check_borrow(val_x, val_y);
+                let diff = self.perform_subtraction(val_x, val_y);
                 self.memory.write_reg(reg_x, diff);
             }
 
@@ -124,9 +127,11 @@ impl CPU {
             }
 
             Opcode::SubstractRegFromOtherReg => {
-                let diff = self.sub_overflow(val_y, val_x);
+                self.check_borrow(val_y, val_x);
+                let diff = self.perform_subtraction(val_y, val_x);
                 self.memory.write_reg(reg_x, diff);
             }
+
             Opcode::ShiftLeft => {
                 /* SHL Vx {, Vy} instruction */
                 let x_ms_bit = (val_x & 0x80) >> 7;
@@ -309,79 +314,28 @@ impl CPU {
         self.halt = false;
     }
 
-    /// Handles the overflow by updating the memory register `0xF`.
-    ///
-    /// If there's an overflow, the memory register `0xF` is set to `1`, otherwise it's set to `0`.
-    ///
-    /// # Arguments
-    ///
-    /// * `result` - The result of the arithmetic operation.
-    /// * `overflow` - A boolean indicating whether an overflow occurred.
-    ///
-    /// # Returns
-    ///
-    /// Returns the `result` passed to the function.
-    ///
-    /// # Examples
-    ///
-    /// ```ignore
-    ///    let mut cpu = ...; // CPU object
-    ///    let result = obj.handle_overflow(0xFA, true);
-    ///    assert_eq!(result, 250);
-    /// ```
-    fn handle_overflow(&mut self, result: u8, overflow: bool) -> u8 {
+    fn handle_add_overflow(&mut self, result: u8, overflow: bool) -> u8 {
         self.memory.write_reg(0xF, if overflow { 1 } else { 0 });
         result
     }
 
-    /// Adds two `u8` numbers with overflow handling.
-    ///
-    /// If the addition results in an overflow, the memory register `0xF` is set to `1`, otherwise it's set to `0`.
-    ///
-    /// # Arguments
-    ///
-    /// * `x` - First operand.
-    /// * `y` - Second operand.
-    ///
-    /// # Returns
-    ///
-    /// Returns the sum of `x` and `y`.
-    ///
-    /// # Examples
-    ///
-    /// ```ignore
-    ///    let mut cpu = ...; // CPU object
-    ///    let sum = cpu.add_overflow(250, 10);
-    ///    assert_eq!(sum, 4); // 260 wraps around in u8
-    /// ```
     fn add_overflow(&mut self, x: u8, y: u8) -> u8 {
         let (sum, overflow) = x.overflowing_add(y);
-        self.handle_overflow(sum, overflow)
+        self.handle_add_overflow(sum, overflow)
     }
 
-    /// Subtracts two `u8` numbers with overflow handling.
-    ///
-    /// If the subtraction results in an underflow, the memory register `0xF` is set to `1`, otherwise it's set to `0`.
-    ///
-    /// # Arguments
-    ///
-    /// * `x` - Minuend.
-    /// * `y` - Subtrahend.
-    ///
-    /// # Returns
-    ///
-    /// Returns the difference of `x` and `y`.
-    ///
-    /// # Examples
-    ///
-    /// ```ignore
-    ///     let difference = cpu.sub_overflow(0x0A, 0x14);
-    ///     assert_eq!(difference, 0xF6); // -10 wraps around in u8
-    /// ```
+    fn check_borrow(&mut self, val1: u8, val2: u8) {
+        if val1 > val2 {
+            self.memory.write_reg(0xF, 1);  // No borrow
+        } else if val1 < val2 {
+            self.memory.write_reg(0xF, 0);  // Borrow occurred
+        } else {
+            self.memory.write_reg(0xF, 1);  // Equal values, so no borrow
+        }
+    }
 
-    fn sub_overflow(&mut self, x: u8, y: u8) -> u8 {
-        let (diff, overflow) = x.overflowing_sub(y);
-        self.handle_overflow(diff, overflow)
+    fn perform_subtraction(&self, val1: u8, val2: u8) -> u8 {
+        val1.wrapping_sub(val2)
     }
 
     pub fn load_program(&mut self, program: &[u8]) {

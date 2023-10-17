@@ -1,3 +1,5 @@
+pub mod binaryreader;
+
 use sdl2::{
     event::Event,
     keyboard::{Keycode, Scancode},
@@ -16,7 +18,7 @@ pub const WINDOW_HEIGHT: usize = 320;
 /// Defines the time per frame in nanoseconds.
 const TIME_PER_FRAME: Duration = Duration::new(0, 1_000_000_000u32 / REFRESH_RATE);
 /// The CPU clock speed in Hz.
-const CPU_CLOCK_HZ: u32 = 500;
+const CPU_CLOCK_HZ: u32 = 1500;
 /// The number of CPU cycles per frame.
 const CPU_CYCLES_PER_FRAME: u32 = CPU_CLOCK_HZ / REFRESH_RATE;
 

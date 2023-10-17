@@ -11,6 +11,8 @@ members = [
     "sdl",
 ]
 
+default-members = ["sdl"]
+
 
 [[test]]
 name = "opcode_tests"
