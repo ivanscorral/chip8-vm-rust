@@ -284,4 +284,18 @@ pub mod tests {
         assert_eq!(cpu.memory.read_reg(0), 254);
         assert_eq!(cpu.memory.read_reg(0xF), 1); // No borrow
     }
+
+    #[test]
+
+    fn test_sne() {
+        let mut cpu = CPU::new();
+
+        cpu.memory.write_reg(0, 1);
+        cpu.memory.write_reg(1, 2);
+
+        cpu.execute(0x9010);
+
+        assert_eq!(cpu.memory.pc, 0x204);
+
+    }
 }
