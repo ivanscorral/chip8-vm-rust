@@ -2,7 +2,7 @@
 
 pub mod tests {
 
-    use chip8::cpu::CPU;
+    use chip8::{cpu::CPU, gpu};
     #[test]
     fn test_jump_n() {
         let mut cpu = CPU::new();
@@ -149,7 +149,6 @@ pub mod tests {
     }
 
     #[test]
-
     fn test_xor_vx_vy() {
         let mut cpu = CPU::new();
 
@@ -174,11 +173,115 @@ pub mod tests {
         cpu.execute(0x8015);
 
         assert_eq!(cpu.memory.read_reg(0), 0x2);
-        assert_eq!(cpu.memory.read_reg(0xF), 0x0);
+        assert_eq!(cpu.memory.read_reg(0xF), 0x1);
 
         cpu.execute(0x8015);
 
         assert_eq!(cpu.memory.read_reg(0), 0xFE); //
-        assert_eq!(cpu.memory.read_reg(0xF), 0x1);
+        assert_eq!(cpu.memory.read_reg(0xF), 0x0);
+    }
+
+    #[test]
+
+    fn test_return() {
+        let mut cpu = CPU::new();
+
+        cpu.memory.push_stack(0x300);
+        cpu.execute(0x00EE);
+
+        assert_eq!(cpu.memory.pc, 0x300);
+        assert_eq!(cpu.memory.sp, 0x0);
+    }
+
+    #[test]
+    fn test_clear_screen() {
+        let mut cpu = CPU::new();
+
+        cpu.get_gpu().video_buffer[5][5] = 1;
+
+        cpu.execute(0x00E0);
+
+        for x in 0..gpu::VRAM_WIDTH {
+            for y in 0..gpu::VRAM_HEIGHT {
+                assert_eq!(cpu.get_gpu().video_buffer[y][x], 0);
+            }
+        }
+    }
+
+    #[test]
+    fn test_add_vx_vy() {
+        let mut cpu = CPU::new();
+
+        cpu.memory.write_reg(0, 0x1); // V0 = 1
+        cpu.memory.write_reg(1, 0x2); // V1 = 2
+
+        cpu.execute(0x8014);
+
+        assert_eq!(cpu.memory.read_reg(0), 0x3);
+    }
+
+    #[test]
+    fn test_shift_right() {
+        let mut cpu = CPU::new();
+
+        cpu.memory.write_reg(0, 0b00001100); // V0 = 0b10101010
+
+        cpu.execute(0x8006);
+
+        assert_eq!(cpu.memory.read_reg(0), 0b00000110);
+        assert_eq!(cpu.memory.read_reg(0xF), 0b0);
+    }
+
+    #[test]
+    fn test_shift_left() {
+        let mut cpu = CPU::new();
+
+        cpu.memory.write_reg(0, 0b00001100); // V0 = 0b10101010
+
+        cpu.execute(0x800E);
+
+        assert_eq!(cpu.memory.read_reg(0), 0b000011000);
+        assert_eq!(cpu.memory.read_reg(0xF), 0b0);
+    }
+
+    #[test]
+
+    fn test_subtract_vy_vx() {
+        let mut cpu = CPU::new();
+
+        // Normal Case: V1 - V0 = 2 - 1
+        cpu.memory.write_reg(0, 1); // V0 = 1
+        cpu.memory.write_reg(1, 2); // V1 = 2
+        cpu.execute(0x8017);
+        assert_eq!(cpu.memory.read_reg(0), 1); // 2 - 1 = 1
+        assert_eq!(cpu.memory.read_reg(0xF), 1); // No borrow
+
+        // Normal Case: Underflow, V1 - V0 = 1 - 2
+        cpu.memory.write_reg(0, 2); // V0 = 2
+        cpu.memory.write_reg(1, 1); // V1 = 1
+        cpu.execute(0x8017);
+        assert_eq!(cpu.memory.read_reg(0), 255); // 1 - 2 = -1, wraps to 255 in u8
+        assert_eq!(cpu.memory.read_reg(0xF), 0); // Borrow occurred
+
+        // Edge Case: Subtracting identical values, V1 - V0 = 1 - 1
+        cpu.memory.write_reg(0, 1); // V0 = 1
+        cpu.memory.write_reg(1, 1); // V1 = 1
+        cpu.execute(0x8017);
+        assert_eq!(cpu.memory.read_reg(0), 0);
+        assert_eq!(cpu.memory.read_reg(0xF), 1); // No borrow
+
+        // Edge Case: Subtracting from 0, V1 - V0 = 0 - 1
+        cpu.memory.write_reg(0, 1); // V0 = 1
+        cpu.memory.write_reg(1, 0); // V1 = 0
+        cpu.execute(0x8017);
+        assert_eq!(cpu.memory.read_reg(0), 255);
+        assert_eq!(cpu.memory.read_reg(0xF), 0); // Borrow occurred
+
+        // Edge Case: Subtracting max u8 value, V1 - V0 = 255 - 1
+        cpu.memory.write_reg(0, 1); // V0 = 1
+        cpu.memory.write_reg(1, 255); // V1 = 255
+        cpu.execute(0x8017);
+        assert_eq!(cpu.memory.read_reg(0), 254);
+        assert_eq!(cpu.memory.read_reg(0xF), 1); // No borrow
     }
 }
