@@ -15,10 +15,10 @@ In order to ensure the accuracy and reliability of the Chip-8 interpreter, it's 
 | Dxyn   | DRW Vx, Vy, nibble    | test_drw_vx_vy_nibble       | [ ]         |
 | Ex9E   | SKP Vx                | test_skp_vx                 | [x]         |
 | ExA1   | SKNP Vx               | test_sknp_vx                | [x]         |
-| Fx07   | LD Vx, DT             | test_ld_vx_dt               | [ ]         |
-| Fx0A   | LD Vx, K              | test_ld_vx_k                | [ ]         |
-| Fx15   | LD DT, Vx             | test_ld_dt_vx               | [ ]         |
-| Fx18   | LD ST, Vx             | test_ld_st_vx               | [ ]         |
+| Fx07   | LD Vx, DT             | test_ld_vx_dt               | [x]         |
+| Fx0A   | LD Vx, K              | test_ld_vx_k                | [x]         |
+| Fx15   | LD DT, Vx             | test_ld_dt_vx               | [x]         |
+| Fx18   | LD ST, Vx             | test_ld_st_vx               | [x]         |
 | Fx1E   | ADD I, Vx             | test_add_i_vx               | [ ]         |
 | Fx29   | LD F, Vx              | test_ld_f_vx                | [ ]         |
 | Fx33   | LD B, Vx              | test_ld_b_vx                | [ ]         |

@@ -417,4 +417,60 @@ pub mod tests {
         // the CPU should skip the next instruction. Thus, the program counter should be incremented by 4.
         assert_eq!(cpu.memory.pc, 0x204);
     }
+
+    #[test]
+    fn test_ld_vx_dt() {
+        let mut cpu = CPU::new();
+
+        // 1. Set delay timer to a known value
+        cpu.memory.dt = 0x5A;
+
+        // 2. Execute the LD V5, DT opcode
+        cpu.execute(0xF507);
+
+        // 3. Assert that V5 now holds the value of the delay timer
+        assert_eq!(cpu.memory.read_reg(5), 0x5A);
+    }
+
+    #[test]
+    fn test_ld_vx_k() {
+        let mut cpu = CPU::new();
+
+        // Simulate that key 7 is pressed
+        cpu.key_pressed(7);
+
+        // Execute the LD V5, K opcode
+        cpu.execute(0xF50A);
+
+        // Assert that V5 now holds the value of the key that was pressed
+        assert_eq!(cpu.memory.read_reg(5), 7);
+    }
+
+    #[test]
+    fn test_ld_st_vx() {
+        let mut cpu = CPU::new();
+
+        // Set V5 to a known value
+        cpu.memory.write_reg(5, 0x5A);
+
+        // Execute the LD ST, V5 opcode
+        cpu.execute(0xF518);
+
+        // Assert that the sound timer now holds the value in V5
+        assert_eq!(cpu.memory.st, 0x5A);
+    }
+
+    #[test]
+    fn test_ld_dt_vx() {
+        let mut cpu = CPU::new();
+
+        // Set V5 to a known value
+        cpu.memory.write_reg(5, 0x5A);
+
+        // Execute the LD DT, V5 opcode
+        cpu.execute(0xF515);
+
+        // Assert that the delay timer now holds the value in V5
+        assert_eq!(cpu.memory.dt, 0x5A);
+    }
 }
