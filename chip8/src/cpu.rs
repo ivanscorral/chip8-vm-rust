@@ -46,7 +46,7 @@ struct MockRand {
 /// Represents the CPU of the Chip-8 virtual machine.
 pub struct CPU {
     pub memory: Memory,
-    gpu: GPU,
+    pub gpu: GPU,
     pub key_state: u16,
     pub halt: bool,
     waiting_for_key: Option<u8>,
@@ -80,14 +80,13 @@ impl CPU {
         match opcode {
             Opcode::Sys => {
                 println!("Sys");
-                return;
             }
             Opcode::Halt => {
                 self.halt = true;
                 println!("Halt");
                 return;
             }
-            Opcode::ClearScreen => self.gpu.reset(),
+            Opcode::ClearScreen => self.gpu.clear(),
             Opcode::Return => {
                 self.memory.pc = self.memory.pop_stack();
                 return;

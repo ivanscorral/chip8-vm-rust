@@ -31,10 +31,19 @@ impl GPU {
     /// # Returns
     ///
     /// A collision flag indicating whether the XOR operation resulted in a pixel being flipped from set (1) to unset (0).
-    fn xor_pixel(&mut self, coords: Coordinate, value: u8) -> u8 {
+    pub fn xor_pixel(&mut self, coords: Coordinate, value: u8) -> u8 {
         let collision = self.video_buffer[coords.1][coords.0] & value;
         self.video_buffer[coords.1][coords.0] ^= value;
         collision
+    }
+
+
+    pub fn clear(&mut self) {
+        for y in 0..VRAM_HEIGHT {
+            for x in 0..VRAM_WIDTH {
+                self.video_buffer[y][x] = 0;
+            }
+        }
     }
 
     /// Draws a single row of a sprite onto the screen buffer.
@@ -60,13 +69,23 @@ impl GPU {
     /// * The second pixel will wrap around and be drawn at (0, 31)
     /// * The third pixel will be drawn at (1, 31)
     /// * And so on, until the eighth pixel is drawn at (6, 31)
-    fn draw_sprite_row(&mut self, coords: Coordinate, row: u8) -> u8 {
+    pub fn draw_sprite_row(&mut self, coords: Coordinate, row: u8) -> u8 {
         let mut collision = 0;
         let wrapped_y = coords.1 % VRAM_HEIGHT;
         for offset_col in 0..8 {
             let wrapped_x = (coords.0 + offset_col) % VRAM_WIDTH;
-            let pixel = (row >> (7 - offset_col)) & 0x1; /* Get the offset bit from the sprite */
+            let pixel = (row >> (7 - offset_col)) & 0x1; // Get the offset bit from the sprite
+
+            // Debug print to check the extracted pixel value
+            println!("Extracted pixel at ({}, {}): {}", wrapped_x, wrapped_y, pixel);
+
+            // Debug print to check the video buffer value before XOR operation
+            println!("Buffer value before XOR at ({}, {}): {}", wrapped_x, wrapped_y, self.video_buffer[wrapped_y][wrapped_x]);
+
             collision |= self.xor_pixel((wrapped_x, wrapped_y), pixel);
+
+            // Debug print to check the video buffer value after XOR operation
+            println!("Buffer value after XOR at ({}, {}): {}", wrapped_x, wrapped_y, self.video_buffer[wrapped_y][wrapped_x]);
         }
         collision
     }
@@ -86,7 +105,7 @@ impl GPU {
     /// # Returns
     ///
     /// A collision flag indicating whether the sprite was drawn successfully. A value of 1 indicates that at least one pixel in the sprite collided with an existing pixel on the screen.
-    pub(crate) fn draw_sprite(&mut self, coords: Coordinate, sprite: Vec<u8>) -> u8 {
+    pub fn draw_sprite(&mut self, coords: Coordinate, sprite: Vec<u8>) -> u8 {
         let mut collision = 0;
         for (offset_row, row) in sprite.iter().enumerate() {
             collision |= self.draw_sprite_row((coords.0, coords.1 + offset_row), *row);

@@ -6,7 +6,7 @@ fn main() {
     let mut sdl = sdl::SDL::new();
     let mut cpu = cpu::CPU::new();
 
-    let program_path = "roms/stars_snaydenov.bin";
+    let program_path = "roms/pong.ch8";
 
     let program = match read_chip8_rom(program_path) {
         Ok(data) => data,
