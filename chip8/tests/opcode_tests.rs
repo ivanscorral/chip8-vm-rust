@@ -13,11 +13,11 @@ pub mod tests {
     #[test]
     fn test_call_n() {
         let mut cpu = CPU::new();
-        cpu.memory.pc = 0x200;
+
         cpu.execute(0x2234); // Call address 0x234
 
         // Check if the return address (next instruction) is pushed onto the stack
-        assert_eq!(cpu.memory.stack[cpu.memory.sp as usize], 0x202);
+        assert_eq!(cpu.memory.stack[(cpu.memory.sp - 1) as usize], 0x202);
 
         // Check if the PC is set to the address from the opcode
         assert_eq!(cpu.memory.pc, 0x234);
