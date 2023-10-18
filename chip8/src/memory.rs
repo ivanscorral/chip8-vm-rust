@@ -110,8 +110,8 @@ impl Memory {
     ///
     /// The value that was popped from the stack.
     pub fn pop_stack(&mut self) -> u16 {
-        let val = self.stack[self.sp as usize];
         self.sp -= 1;
+        let val = self.stack[self.sp as usize];
         val
     }
 
@@ -121,8 +121,8 @@ impl Memory {
     ///
     /// * `val` - The value to push onto the stack.
     pub fn push_stack(&mut self, val: u16) {
-        self.sp += 1;
         self.stack[self.sp as usize] = val;
+        self.sp += 1;
     }
 
     /// Resets the memory to its initial state.
