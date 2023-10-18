@@ -30,7 +30,7 @@ pub struct Memory {
 
 impl Memory {
     /// Creates a new `Memory` instance.
-    pub(crate) fn new() -> Memory {
+    pub fn new() -> Memory {
         let mut mem = Memory {
             memory: [0; MEM_SIZE],
             stack: [0; 0x100],
@@ -54,7 +54,7 @@ impl Memory {
     /// # Returns
     ///
     /// The byte at the specified address.
-    pub(crate) fn load(&self, addr: u16) -> u8 {
+    pub fn load(&self, addr: u16) -> u8 {
         self.memory[addr as usize]
     }
 
@@ -64,7 +64,7 @@ impl Memory {
     ///
     /// * `addr` - The address to store to.
     /// * `val` - The byte to store.
-    pub(crate) fn store(&mut self, addr: u16, val: u8) {
+    pub fn store(&mut self, addr: u16, val: u8) {
         self.memory[addr as usize] = val;
     }
 
@@ -92,7 +92,7 @@ impl Memory {
     }
 
     /// Updates the delay timer and sound timer.
-    pub(crate) fn update_timers(&mut self) {
+    pub fn update_timers(&mut self) {
         if self.dt > 0 {
             self.dt -= 1;
         }
@@ -177,7 +177,7 @@ impl Memory {
     /// # Returns
     ///
     /// The loaded sprite as a vector of bytes.
-    pub(crate) fn load_sprite(&self, nibble: usize) -> Vec<u8> {
+    pub fn load_sprite(&self, nibble: usize) -> Vec<u8> {
         let mut sprite = Vec::new();
         let start_addr = self.i as usize;
 
