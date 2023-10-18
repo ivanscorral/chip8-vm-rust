@@ -78,6 +78,10 @@ impl CPU {
         let val_y = self.memory.read_reg(reg_y);
 
         match opcode {
+            Opcode::Sys => {
+                println!("Sys");
+                return;
+            }
             Opcode::Halt => {
                 self.halt = true;
                 println!("Halt");
@@ -131,9 +135,11 @@ impl CPU {
             Opcode::ShiftRight => {
                 /* SHR Vx {, Vy} instruction */
                 let x_ls_bit = val_x & 0x1;
-                self.memory.write_reg(0xF, x_ls_bit); /* Set VF to the least significant bit of Vx */
-                self.memory.write_reg(reg_x, val_x.wrapping_shr(1)); /* Perform a right shift on Vx */
+                self.memory.write_reg(0xF, x_ls_bit); // Set VF to the least significant bit of Vx
+                self.memory.write_reg(reg_x, val_x.wrapping_shr(1)); // Perform a right shift on Vx
             }
+
+
 
             Opcode::SubstractRegFromOtherReg => {
                 self.check_borrow(val_y, val_x);

@@ -35,6 +35,7 @@ pub(crate) enum Opcode {
     StoreRegsIntoMem,
     LoadRegsFromMem,
     Unknown,
+    Sys,
 }
 
 pub(crate) fn parse_opcode(opcode: u16) -> (Opcode, u8, u8) {
@@ -50,10 +51,9 @@ pub(crate) fn parse_opcode(opcode: u16) -> (Opcode, u8, u8) {
     );
     let parsed_opcode = match opcode & 0xF000 {
         0x0000 => match opcode & 0x00FF {
-            0x0000 => Opcode::Halt,
             0x00E0 => Opcode::ClearScreen,
             0x00EE => Opcode::Return,
-            _ => Opcode::Unknown,
+            _ => Opcode::Sys,
         },
         0x1000 => Opcode::JumpToAddress(addr),
         0x2000 => Opcode::CallAddress(addr),
