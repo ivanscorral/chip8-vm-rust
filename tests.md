@@ -13,8 +13,8 @@ In order to ensure the accuracy and reliability of the Chip-8 interpreter, it's 
 | Bnnn   | JP V0, addr           | test_jp_v0_addr             | [x]         |
 | Cxkk   | RND Vx, byte          | test_rnd_vx_byte            | [x]         |
 | Dxyn   | DRW Vx, Vy, nibble    | test_drw_vx_vy_nibble       | [ ]         |
-| Ex9E   | SKP Vx                | test_skp_vx                 | [ ]         |
-| ExA1   | SKNP Vx               | test_sknp_vx                | [ ]         |
+| Ex9E   | SKP Vx                | test_skp_vx                 | [x]         |
+| ExA1   | SKNP Vx               | test_sknp_vx                | [x]         |
 | Fx07   | LD Vx, DT             | test_ld_vx_dt               | [ ]         |
 | Fx0A   | LD Vx, K              | test_ld_vx_k                | [ ]         |
 | Fx15   | LD DT, Vx             | test_ld_dt_vx               | [ ]         |

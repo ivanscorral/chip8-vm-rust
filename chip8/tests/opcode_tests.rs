@@ -332,4 +332,89 @@ pub mod tests {
         assert_eq!(cpu.memory.read_reg(0), 0x89);
     }
 
+    #[test]
+    fn test_ld_b_vx() {
+        let mut cpu = CPU::new();
+
+        // Setting Vx register to a number. Let's say 123
+        cpu.memory.write_reg(5, 105); // V5 = 123
+
+        // Setting I register to a location in memory, say 0x400
+        cpu.memory.i = 0x400;
+
+        // Execute the opcode for `LD B, V5`
+        cpu.execute(0xF533);
+
+        assert_eq!(cpu.memory.load(0x400), 1); // 1
+        assert_eq!(cpu.memory.load(0x401), 0); // 2
+        assert_eq!(cpu.memory.load(0x402), 5); // 3
+    }
+
+    /// Ex9E - SKP Vx
+    /// Skip next instruction if key with the value of Vx is pressed.
+    #[test]
+    fn test_skp_vx() {
+        let mut cpu = CPU::new();
+
+        // 1. Set V5 register to hold the value of key 5
+        cpu.memory.write_reg(5, 5);
+
+        // 2. Simulate pressing key 5
+        cpu.key_pressed(5);
+
+        // 3. Execute the SKP V5 opcode
+        cpu.execute(0xE59E);
+
+        // After executing the instruction, if the key corresponding to V5 (which is key 5) is pressed,
+        // the CPU should skip the next instruction. Thus, the program counter should be incremented by 4.
+        assert_eq!(cpu.memory.pc, 0x204);
+
+        // Reset CPU and test for a key that is not pressed
+        cpu.reset();
+
+        // 1. Set V5 register to hold the value of key 6
+        cpu.memory.write_reg(5, 6);
+
+        // 2. We don't simulate pressing key 6
+
+        // 3. Execute the SKP V5 opcode
+        cpu.execute(0xE59E);
+
+        // In this case, the key corresponding to V5 (which is key 6) is not pressed.
+        // Thus, the CPU shouldn't skip the next instruction. So, the program counter should only be incremented by 2.
+        assert_eq!(cpu.memory.pc, 0x202);
+    }
+
+    #[test]
+    fn test_snkp_vx() {
+        let mut cpu = CPU::new();
+
+        // 1. Set V5 register to hold the value of key 5
+        cpu.memory.write_reg(5, 5);
+
+        // 2. Simulate pressing key 5
+        cpu.key_pressed(5);
+
+        // 3. Execute the SNKP V5 opcode
+        cpu.execute(0xE5A1);
+
+        // In this case, the key corresponding to V5 (which is key 5) is pressed.
+        // Thus, the CPU shouldn't skip the next instruction. So, the program counter should only be incremented by 2.
+        assert_eq!(cpu.memory.pc, 0x202);
+
+        // Reset CPU and test for a key that is not pressed
+        cpu.reset();
+
+        // 1. Set V5 register to hold the value of key 6
+        cpu.memory.write_reg(5, 6);
+
+        // 2. We don't simulate pressing key 6
+
+        // 3. Execute the SNKP V5 opcode
+        cpu.execute(0xE5A1);
+
+        // After executing the instruction, if the key corresponding to V5 (which is key 6) is not pressed,
+        // the CPU should skip the next instruction. Thus, the program counter should be incremented by 4.
+        assert_eq!(cpu.memory.pc, 0x204);
+    }
 }
