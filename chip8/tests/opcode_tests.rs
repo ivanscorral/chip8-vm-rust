@@ -473,4 +473,133 @@ pub mod tests {
         // Assert that the delay timer now holds the value in V5
         assert_eq!(cpu.memory.dt, 0x5A);
     }
+
+    #[test]
+fn test_add_i_vx() {
+    let mut cpu = CPU::new();
+
+    // Set V5 to a known value
+    cpu.memory.write_reg(5, 0x5A);
+
+    // Set I register to a starting value
+    cpu.memory.i = 0x100;
+
+    // Execute the ADD I, V5 opcode
+    cpu.execute(0xF51E);
+
+    // Assert that the I register now holds its initial value plus the value in V5
+    assert_eq!(cpu.memory.i, 0x100 + 0x5A);
+}
+
+#[test]
+fn test_ld_f_vx() {
+    let mut cpu = CPU::new();
+
+    // Set V5 to a known value (e.g., the hexadecimal digit 9)
+    cpu.memory.write_reg(5, 9);
+
+    // Execute the LD F, V5 opcode
+    cpu.execute(0xF529);
+
+    // Assert that the I register is set to the sprite location for the character '9'
+    // Given that sprites are typically stored at the beginning of memory and are 5 bytes each,
+    // the sprite for '9' would be at address 5 * 9 = 0x2D (or 45 in decimal).
+    assert_eq!(cpu.memory.i, 0x2D);
+}
+#[test]
+fn test_ld_i_vx() {
+    let mut cpu = CPU::new();
+
+    // Set V0, V1, and V2 to known values
+    cpu.memory.write_reg(0, 10);
+    cpu.memory.write_reg(1, 20);
+    cpu.memory.write_reg(2, 30);
+
+    // Set I register to a starting address
+    cpu.memory.i = 0x300;
+
+    // Execute the LD [I], V2 opcode
+    cpu.execute(0xF255);
+
+    // Assert that the memory locations starting from I have the values of V0, V1, and V2
+    assert_eq!(cpu.memory.load(0x300), 10);
+    assert_eq!(cpu.memory.load(0x301), 20);
+    assert_eq!(cpu.memory.load(0x302), 30);
+}
+
+#[test]
+fn test_ld_vx_i() {
+    let mut cpu = CPU::new();
+
+    // Store values in memory starting from 0x300
+    cpu.memory.store(0x300, 40);
+    cpu.memory.store(0x301, 50);
+    cpu.memory.store(0x302, 60);
+
+    // Set I register to starting address
+    cpu.memory.i = 0x300;
+
+    // Execute the LD V2, [I] opcode
+    cpu.execute(0xF265);
+
+    // Assert that V0, V1, and V2 have the values from memory starting from I
+    assert_eq!(cpu.memory.read_reg(0), 40);
+    assert_eq!(cpu.memory.read_reg(1), 50);
+    assert_eq!(cpu.memory.read_reg(2), 60);
+}
+
+#[test]
+fn test_drw_vx_vy_nibble() {
+    let mut cpu = CPU::new();
+
+    // 1. Setup: Load a known sprite into memory at a known address
+    let sprite = vec![0xF0, 0x90, 0x90, 0xF0]; // This represents the sprite for the number '0'
+    let sprite_addr = 0x300;
+    for (i, &byte) in sprite.iter().enumerate() {
+        cpu.memory.store(sprite_addr + i as u16, byte);
+    }
+
+    // Debug: Print the memory region where the sprite was loaded
+    println!("Memory region from 0x300 to 0x303:");
+    for i in 0..4 {
+        println!("Address 0x{:X}: 0x{:X}", sprite_addr + i, cpu.memory.load(sprite_addr + i as u16));
+    }
+
+    // Set I register to point to the sprite location in memory
+    cpu.memory.i = sprite_addr;
+
+    // Set Vx and Vy registers to known values for the coordinates
+    cpu.memory.write_reg(0, 10); // x-coordinate
+    cpu.memory.write_reg(1, 15); // y-coordinate
+
+    // 2. Test Actions: Execute the DRW Vx, Vy, nibble opcode
+    cpu.execute(0xD014); // Where `D014` represents `DRW V0, V1, 4`
+
+    // Debug: Print the affected screen region after drawing the sprite
+    println!("Screen region around (10, 15):");
+    for y in 15..19 {
+        let mut row = String::new();
+        for x in 10..18 {
+            row.push_str(&format!("{},", cpu.gpu.video_buffer[y][x]));
+        }
+        println!("Row {}: {}", y, row);
+    }
+
+    // 3. Assertions:
+    // Check if the sprite is drawn correctly on the screen
+    for (i, &byte) in sprite.iter().enumerate() {
+        for j in 0..8 {
+            let pixel = (byte >> (7 - j)) & 0x1;
+            let screen_pixel = cpu.gpu.video_buffer[15 + i][10 + j];
+            assert_eq!(pixel, screen_pixel);
+        }
+    }
+
+    // Debug: Print the value of VF register after the drawing operation
+    println!("Value of VF register: 0x{:X}", cpu.memory.read_reg(0xF));
+
+    // Check if the collision flag (VF register) is set correctly
+    assert_eq!(cpu.memory.read_reg(0xF), 0);
+}
+
 }

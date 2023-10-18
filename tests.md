@@ -12,18 +12,18 @@ In order to ensure the accuracy and reliability of the Chip-8 interpreter, it's 
 | Annn   | LD I, addr            | test_ld_i_addr              | [x]         |
 | Bnnn   | JP V0, addr           | test_jp_v0_addr             | [x]         |
 | Cxkk   | RND Vx, byte          | test_rnd_vx_byte            | [x]         |
-| Dxyn   | DRW Vx, Vy, nibble    | test_drw_vx_vy_nibble       | [ ]         |
+| Dxyn   | DRW Vx, Vy, nibble    | test_drw_vx_vy_nibble       | [x]         |
 | Ex9E   | SKP Vx                | test_skp_vx                 | [x]         |
 | ExA1   | SKNP Vx               | test_sknp_vx                | [x]         |
 | Fx07   | LD Vx, DT             | test_ld_vx_dt               | [x]         |
 | Fx0A   | LD Vx, K              | test_ld_vx_k                | [x]         |
 | Fx15   | LD DT, Vx             | test_ld_dt_vx               | [x]         |
 | Fx18   | LD ST, Vx             | test_ld_st_vx               | [x]         |
-| Fx1E   | ADD I, Vx             | test_add_i_vx               | [ ]         |
-| Fx29   | LD F, Vx              | test_ld_f_vx                | [ ]         |
-| Fx33   | LD B, Vx              | test_ld_b_vx                | [ ]         |
-| Fx55   | LD [I], Vx            | test_ld_i_vx                | [ ]         |
-| Fx65   | LD Vx, [I]            | test_ld_vx_i                | [ ]         |
+| Fx1E   | ADD I, Vx             | test_add_i_vx               | [x]         |
+| Fx29   | LD F, Vx              | test_ld_f_vx                | [x]         |
+| Fx33   | LD B, Vx              | test_ld_b_vx                | [x]         |
+| Fx55   | LD [I], Vx            | test_ld_i_vx                | [x]         |
+| Fx65   | LD Vx, [I]            | test_ld_vx_i                | [x]         |
 
 ## Mocking Random Byte Generation
 
