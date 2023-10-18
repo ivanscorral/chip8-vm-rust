@@ -24,4 +24,4 @@ jobs:
         run: cargo build --verbose
 
       - name: Run tests
-        run: cargo test -p chip8 opcode_tests --verbose
+        run: cargo test --verbose
