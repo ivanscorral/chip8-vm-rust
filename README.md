@@ -125,6 +125,3 @@ Depending on your operating system, follow the appropriate instructions to insta
 
 Open-source under the MIT license.
 
-## Contributing
-
-Foster the growth of `chip8-vm-rust`! Fork, enhance, and submit your PRs. Your contributions shape its future.
